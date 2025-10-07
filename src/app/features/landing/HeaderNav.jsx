@@ -11,7 +11,9 @@ export default function HeaderNav() {
           <a className="hover:opacity-90" style={{color: "var(--feelheal-purple)"}} href="#about">About</a>
           <a className="hover:opacity-90" style={{color: "var(--feelheal-purple)"}} href="#features">Features</a>
           <a className="hover:opacity-90" style={{color: "var(--feelheal-purple)"}} href="#footer">Contact</a>
-          <button className="rounded-full px-4 py-2 text-white transition hover:opacity-90" style={{background: "var(--feelheal-purple)"}}>Get Started</button>
+          <a href="/signup" className="rounded-full px-4 py-2 border" style={{borderColor: "var(--feelheal-blue)", color: "var(--feelheal-blue)"}}>Signup</a>
+          <a href="/login" className="rounded-full px-4 py-2 text-white transition hover:opacity-90" style={{background: "var(--feelheal-purple)"}}>Login</a>
+         
         </nav>
       </div>
     </header>
