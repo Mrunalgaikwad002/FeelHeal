@@ -114,5 +114,21 @@ p { line-height: 1.7; }
 /* Stronger glow helpers */
 
 
+/* Blinking animation for eyes */
+@keyframes blink {
+  0%, 90%, 100% { 
+    transform: scaleY(1); 
+    opacity: 1; 
+  }
+  95% { 
+    transform: scaleY(0.1); 
+    opacity: 0.3; 
+  }
+}
+
+.animate-blink {
+  animation: blink 3s infinite;
+}
+
 /* Horizontal scroll layout */
 
