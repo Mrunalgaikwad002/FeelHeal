@@ -33,7 +33,10 @@ export default function Signup() {
     try {
       const user = { name, email, mood };
       localStorage.setItem("feelheal_user", JSON.stringify(user));
-      router.push("/dashboard");
+      // Ensure onboarding shows on the very first login after signup
+      localStorage.removeItem("feelheal_seen_onboarding");
+      // For now, after signup we take users to login. On first login, onboarding will show.
+      router.push("/login");
     } catch {
       setError("Something went wrong. Please try again.");
     }

@@ -19,7 +19,8 @@ export default function Login() {
     try {
       const user = { email };
       localStorage.setItem("feelheal_user", JSON.stringify(user));
-      router.push("/dashboard");
+      const seen = localStorage.getItem("feelheal_seen_onboarding");
+      router.push(seen ? "/dashboard" : "/onboarding");
     } catch {
       setError("Something went wrong. Please try again.");
     }

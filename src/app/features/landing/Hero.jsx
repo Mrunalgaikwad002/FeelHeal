@@ -17,10 +17,7 @@ export default function Hero() {
             <span style={{color: "#f2b300", fontWeight: 700}}>brighter</span>
           </p>
           <p className="mt-3 text-base md:text-lg text-black/70 max-w-xl">Your daily companion to track emotions, find calm, and practice mindfulness.</p>
-          <div className="mt-8 flex items-center gap-3 justify-center md:justify-start">
-            <a href="/mood-tracker" className="btn-primary">Get Started</a>
-            <a href="#features" className="btn-ghost">Explore Features</a>
-          </div>
+          
         </div>
         <div className="relative md:pr-0 md:-mr-6 lg:-mr-10">
           <img src="/image%201.png" alt="Calm pastel illustration" className="w-full h-auto rounded-3xl md:w-[110%] md:max-w-none" style={{border: 0, outline: 'none', boxShadow: 'none'}} loading="eager" />
