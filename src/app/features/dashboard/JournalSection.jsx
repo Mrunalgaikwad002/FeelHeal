@@ -35,7 +35,7 @@ export default function JournalSection({ isFirstTime }) {
   };
 
   return (
-    <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-lg">
+    <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-lg h-full flex flex-col card-hover">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
           <span className="text-2xl mr-3">✍️</span>
@@ -53,7 +53,7 @@ export default function JournalSection({ isFirstTime }) {
       </div>
 
       {isFirstTime ? (
-        <div className="text-center">
+        <div className="text-center flex-1 flex flex-col justify-center">
           <div className="mb-4">
             <div className="text-4xl mb-2">📝</div>
             <p className="text-gray-600 mb-4">Write your first reflection ✍️</p>
@@ -69,7 +69,7 @@ export default function JournalSection({ isFirstTime }) {
           </button>
         </div>
       ) : (
-        <div>
+        <div className="flex-1 flex flex-col">
           {showNewEntry ? (
             <div className="mb-4">
               <textarea
@@ -117,7 +117,7 @@ export default function JournalSection({ isFirstTime }) {
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-4">
+                <div className="text-center py-4 mt-auto">
                   <div className="text-3xl mb-2">📖</div>
                   <p className="text-gray-600 text-sm">No entries yet</p>
                   <p className="text-xs text-gray-500">Start writing to track your thoughts</p>
@@ -130,3 +130,4 @@ export default function JournalSection({ isFirstTime }) {
     </div>
   );
 }
+

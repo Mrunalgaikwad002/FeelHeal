@@ -17,7 +17,28 @@ export default function Login() {
       return;
     }
     try {
-      const user = { email };
+      // If logging in as a different user than previously stored,
+      // reset first-time flags so onboarding shows properly
+      const previousRaw = localStorage.getItem("feelheal_user");
+      const previous = previousRaw ? JSON.parse(previousRaw) : null;
+      if (!previous || previous?.email !== email) {
+        localStorage.removeItem("feelheal_seen_onboarding");
+        localStorage.removeItem("feelheal_seen_dashboard");
+        localStorage.removeItem("feelheal_onboarding_responses");
+      }
+
+      // Preserve stored name if this email was used before, otherwise derive from email
+      let derivedName = previous && previous.email === email ? previous.name : undefined;
+      if (!derivedName) {
+        const localPart = email.split("@")[0] || "";
+        derivedName = localPart
+          .split(/[._-]+/)
+          .filter(Boolean)
+          .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+          .join(" ") || "Friend";
+      }
+
+      const user = { email, name: derivedName };
       localStorage.setItem("feelheal_user", JSON.stringify(user));
       const seen = localStorage.getItem("feelheal_seen_onboarding");
       router.push(seen ? "/dashboard" : "/onboarding");

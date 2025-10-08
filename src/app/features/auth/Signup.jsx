@@ -35,6 +35,8 @@ export default function Signup() {
       localStorage.setItem("feelheal_user", JSON.stringify(user));
       // Ensure onboarding shows on the very first login after signup
       localStorage.removeItem("feelheal_seen_onboarding");
+      localStorage.removeItem("feelheal_seen_dashboard");
+      localStorage.removeItem("feelheal_onboarding_responses");
       // For now, after signup we take users to login. On first login, onboarding will show.
       router.push("/login");
     } catch {

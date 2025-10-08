@@ -132,3 +132,85 @@ p { line-height: 1.7; }
 
 /* Horizontal scroll layout */
 
+/* Calm motion additions */
+@keyframes floatSoft {
+  0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: .9; }
+  50% { transform: translateY(-12px) translateX(6px) rotate(3deg); opacity: .85; }
+  100% { transform: translateY(0) translateX(0) rotate(0deg); opacity: .9; }
+}
+
+@keyframes driftDown {
+  0% { transform: translateY(-10%) translateX(0); opacity: 0; }
+  10% { opacity: .35; }
+  50% { transform: translateY(50%) translateX(6%); opacity: .45; }
+  100% { transform: translateY(110%) translateX(-4%); opacity: 0; }
+}
+
+@keyframes softPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 6px 18px rgba(123,44,191,.18); }
+  50% { transform: scale(1.02); box-shadow: 0 10px 26px rgba(123,44,191,.24); }
+}
+
+@keyframes fadeInSoft {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in-soft { animation: fadeInSoft .45s ease both; }
+
+.card-hover {
+  transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 36px rgba(123, 44, 191, 0.18);
+}
+
+.btn-pulse { animation: softPulse 2.4s ease-in-out infinite; }
+
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+.btn-ripple::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, rgba(255,255,255,.45) 10%, rgba(255,255,255,0) 60%);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: width .5s ease, height .5s ease, opacity .5s ease;
+}
+.btn-ripple:active::after, .btn-ripple:focus-visible::after {
+  width: 200%;
+  height: 200%;
+  opacity: 1;
+}
+
+/* Floating petals/hearts background */
+.floating-bg { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 30; }
+.petal {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(closest-side, #ffc7e6 0%, #ffaedb 65%, rgba(255,255,255,0) 75%);
+  border-radius: 100% 60% 100% 60% / 60% 100% 60% 100%; /* petal-like */
+  animation: driftDown 12s linear infinite;
+  box-shadow: 0 2px 6px rgba(123, 44, 191, 0.15);
+}
+.petal.small { width: 12px; height: 12px; animation-duration: 10s; opacity: .25; }
+.petal.medium { width: 16px; height: 16px; animation-duration: 13s; opacity: .28; }
+.petal.large { width: 22px; height: 22px; animation-duration: 16s; opacity: .30; }
+
+/* Emoji variant to ensure visibility on all backgrounds */
+.petal-emoji {
+  position: absolute;
+  font-size: 18px;
+  filter: drop-shadow(0 2px 4px rgba(123,44,191,.2));
+  animation: driftDown 14s linear infinite;
+  opacity: .35;
+}
+

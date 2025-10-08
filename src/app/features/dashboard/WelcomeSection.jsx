@@ -15,6 +15,7 @@ export default function WelcomeSection({ user, isFirstTime }) {
   ];
 
   const [currentAffirmation, setCurrentAffirmation] = useState(0);
+  const [affirmationKey, setAffirmationKey] = useState(0);
 
   useEffect(() => {
     // Set a random affirmation on component mount
@@ -22,17 +23,33 @@ export default function WelcomeSection({ user, isFirstTime }) {
   }, []);
 
   return (
-    <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 mb-8 border border-white/20 shadow-lg">
+    <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 mb-8 border border-white/20 shadow-lg relative overflow-hidden">
       <div className="text-center">
         {/* Welcome Message */}
-        <h1 className="text-3xl md:text-4xl font-bold mb-4" style={{color: "var(--feelheal-purple)"}}>
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 flex items-center justify-center gap-2" style={{color: "var(--feelheal-purple)"}}>
           {isFirstTime ? (
             <>
               Welcome to FeelHeal, {user.name}! 💖
             </>
           ) : (
             <>
-              Hi {user.name}! How are you feeling today? 🌸
+              <span>Hi {user.name}! How are you feeling today?</span>
+              <span
+                aria-hidden="true"
+                className="inline-block align-middle select-none"
+                style={{
+                  height: '36px',
+                  width: '36px',
+                  backgroundImage: "url('/mood.gif')",
+                  backgroundSize: 'contain',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center',
+                  transform: 'scale(2.4)',
+                  transformOrigin: 'center',
+                  marginLeft: '8px',
+                  pointerEvents: 'none'
+                }}
+              />
             </>
           )}
         </h1>
@@ -43,12 +60,12 @@ export default function WelcomeSection({ user, isFirstTime }) {
           </p>
         )}
 
-        {/* Daily Affirmation */}
-        <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 border border-purple-200">
+        {/* Today's Highlight (Affirmation) */}
+        <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 border border-purple-200 fade-in-soft" key={affirmationKey}>
           <div className="flex items-center justify-center mb-3">
             <span className="text-2xl mr-2">✨</span>
             <h3 className="text-lg font-semibold" style={{color: "var(--feelheal-purple)"}}>
-              Daily Affirmation
+              Today’s Highlight
             </h3>
             <span className="text-2xl ml-2">✨</span>
           </div>
@@ -56,8 +73,8 @@ export default function WelcomeSection({ user, isFirstTime }) {
             "{dailyAffirmations[currentAffirmation]}"
           </p>
           <button 
-            onClick={() => setCurrentAffirmation(Math.floor(Math.random() * dailyAffirmations.length))}
-            className="mt-4 text-sm px-4 py-2 rounded-full bg-white/50 hover:bg-white/70 transition-colors"
+            onClick={() => { const idx = Math.floor(Math.random() * dailyAffirmations.length); setCurrentAffirmation(idx); setAffirmationKey(k => k + 1); }}
+            className="mt-4 text-sm px-4 py-2 rounded-full bg-white/50 hover:bg-white/70 transition-colors btn-pulse btn-ripple"
             style={{color: "var(--feelheal-purple)"}}
           >
             Get New Affirmation
@@ -73,6 +90,8 @@ export default function WelcomeSection({ user, isFirstTime }) {
           </div>
         )}
       </div>
+
+      {/* Decorative gif removed as it interfered with layout; mood gif now lives in MoodTracker prompt */}
     </div>
   );
 }
