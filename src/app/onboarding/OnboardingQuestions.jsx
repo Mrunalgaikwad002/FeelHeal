@@ -8,6 +8,7 @@ export default function OnboardingQuestions() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [responses, setResponses] = useState({});
   const [selectedGoals, setSelectedGoals] = useState([]);
+  const [showThankYou, setShowThankYou] = useState(false);
 
   const questions = [
     {
@@ -153,14 +154,19 @@ export default function OnboardingQuestions() {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Save responses and proceed to dashboard
+      // Save responses and show thank you page
       const finalResponses = {
         ...responses,
         goals: selectedGoals
       };
       localStorage.setItem("feelheal_onboarding_responses", JSON.stringify(finalResponses));
       localStorage.setItem("feelheal_seen_onboarding", "true");
-      router.push("/dashboard");
+      setShowThankYou(true);
+      
+      // Redirect to dashboard after 3 seconds
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 3000);
     }
   };
 
@@ -176,6 +182,41 @@ export default function OnboardingQuestions() {
     : currentQ.type === "text" 
     ? responses[currentQ.id]?.trim() 
     : responses[currentQ.id];
+
+  // Thank you page
+  if (showThankYou) {
+    return (
+      <div 
+        className="h-screen flex items-center justify-center px-6 py-4 overflow-hidden"
+        style={{
+          backgroundImage: "url('/pink bg.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div className="text-center">
+          <div className="mb-8">
+            <img 
+              src="/redirecting heart.png" 
+              alt="Thank you heart" 
+              className="mx-auto animate-pulse"
+              style={{maxWidth: '200px', height: 'auto'}}
+            />
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4" style={{color: "var(--feelheal-purple)"}}>
+            Thank you for sharing a bit about yourself 💖
+          </h1>
+          <p className="text-lg md:text-xl mb-6" style={{color: "var(--feelheal-purple)"}}>
+            We're setting up your personalized wellness journey...
+          </p>
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{borderColor: "var(--feelheal-purple)"}}></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
