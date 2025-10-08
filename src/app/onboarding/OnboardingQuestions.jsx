@@ -179,7 +179,7 @@ export default function OnboardingQuestions() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center px-6 py-16"
+      className="h-screen flex items-center justify-center px-6 py-4 overflow-hidden"
       style={{
         backgroundImage: "url('/pink bg.jpg')",
         backgroundSize: 'cover',
@@ -187,9 +187,9 @@ export default function OnboardingQuestions() {
         backgroundRepeat: 'no-repeat'
       }}
     >
-      <div className="max-w-4xl w-full">
+      <div className="max-w-4xl w-full h-full flex flex-col">
         {/* Progress Bar */}
-        <div className="mb-8">
+        <div className="mb-4 flex-shrink-0">
           <div className="flex justify-between text-sm mb-2" style={{color: "var(--feelheal-purple)"}}>
             <span>Question {currentQuestion + 1} of {questions.length}</span>
             <span>{Math.round(((currentQuestion + 1) / questions.length) * 100)}%</span>
@@ -207,7 +207,7 @@ export default function OnboardingQuestions() {
 
         {/* Question Card */}
         <div 
-          className="rounded-3xl p-8 md:p-12 mb-8"
+          className="rounded-3xl p-6 md:p-8 mb-4 flex-1 flex flex-col"
           style={{
             background: "rgba(255, 255, 255, 0.15)",
             backdropFilter: "blur(20px)",
@@ -217,27 +217,27 @@ export default function OnboardingQuestions() {
           }}
         >
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold mb-4" style={{color: "var(--feelheal-purple)"}}>
+          <div className="text-center mb-4 flex-shrink-0">
+            <h1 className="text-2xl md:text-3xl font-bold mb-2" style={{color: "var(--feelheal-purple)"}}>
               Let's take a moment to understand you better 💖
             </h1>
           </div>
 
           {/* Question */}
-          <div className="text-center mb-8">
-            <div className="text-4xl mb-4">{currentQ.emoji}</div>
-            <h2 className="text-xl md:text-2xl font-semibold mb-6" style={{color: "var(--feelheal-purple)"}}>
+          <div className="text-center mb-4 flex-1 flex flex-col">
+            <div className="text-3xl mb-2">{currentQ.emoji}</div>
+            <h2 className="text-lg md:text-xl font-semibold mb-4" style={{color: "var(--feelheal-purple)"}}>
               {currentQ.question}
             </h2>
 
             {/* Options */}
             {currentQ.type === "single" && (
-              <div className="space-y-3">
+              <div className="space-y-3 flex-1 flex flex-col justify-center">
                 {currentQ.options.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => handleAnswer(currentQ.id, option.value)}
-                    className={`w-full p-4 rounded-xl text-left transition-all duration-200 ${
+                    className={`w-full p-4 rounded-xl text-left transition-all duration-200 text-base ${
                       responses[currentQ.id] === option.value
                         ? "text-white shadow-lg"
                         : "bg-white/20 hover:bg-white/30 text-gray-700 backdrop-blur-sm"
@@ -255,12 +255,12 @@ export default function OnboardingQuestions() {
             )}
 
             {currentQ.type === "multiple" && (
-              <div className="space-y-3">
+              <div className="space-y-3 flex-1 flex flex-col justify-center">
                 {currentQ.options.map((option) => (
                   <button
                     key={option.value}
                     onClick={() => handleMultipleSelect(currentQ.id, option.value)}
-                    className={`w-full p-4 rounded-xl text-left transition-all duration-200 ${
+                    className={`w-full p-4 rounded-xl text-left transition-all duration-200 text-base ${
                       selectedGoals.includes(option.value)
                         ? "text-white shadow-lg"
                         : "bg-white/20 hover:bg-white/30 text-gray-700 backdrop-blur-sm"
@@ -278,13 +278,13 @@ export default function OnboardingQuestions() {
             )}
 
             {currentQ.type === "text" && (
-              <div>
+              <div className="flex-1 flex flex-col justify-center">
                 <textarea
                   value={responses[currentQ.id] || ""}
                   onChange={(e) => handleAnswer(currentQ.id, e.target.value)}
                   placeholder={currentQ.placeholder}
-                  className="w-full p-4 rounded-xl border-2 border-white/30 bg-white/20 backdrop-blur-sm focus:outline-none focus:border-purple-300 resize-none"
-                  rows={4}
+                  className="w-full p-3 rounded-xl border-2 border-white/30 bg-white/20 backdrop-blur-sm focus:outline-none focus:border-purple-300 resize-none"
+                  rows={3}
                   style={{color: "var(--feelheal-purple)"}}
                 />
               </div>
@@ -292,13 +292,13 @@ export default function OnboardingQuestions() {
 
             {/* Other text input for question 4 */}
             {currentQ.id === 4 && responses[currentQ.id] === "other" && (
-              <div className="mt-4">
+              <div className="mt-2">
                 <input
                   type="text"
                   placeholder="Please specify..."
                   value={responses[`${currentQ.id}_other`] || ""}
                   onChange={(e) => handleAnswer(`${currentQ.id}_other`, e.target.value)}
-                  className="w-full p-4 rounded-xl border-2 border-white/30 bg-white/20 backdrop-blur-sm focus:outline-none focus:border-purple-300"
+                  className="w-full p-3 rounded-xl border-2 border-white/30 bg-white/20 backdrop-blur-sm focus:outline-none focus:border-purple-300"
                   style={{color: "var(--feelheal-purple)"}}
                 />
               </div>
@@ -307,7 +307,7 @@ export default function OnboardingQuestions() {
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between">
+        <div className="flex justify-between flex-shrink-0">
           <button
             onClick={handlePrevious}
             disabled={currentQuestion === 0}
