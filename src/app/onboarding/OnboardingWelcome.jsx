@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import OnboardingQuestions from "./OnboardingQuestions";
 
 export default function OnboardingWelcome() {
   const router = useRouter();
@@ -17,36 +18,39 @@ export default function OnboardingWelcome() {
     } catch {}
   }, []);
 
+  const [showQuestions, setShowQuestions] = useState(false);
+
   function proceed() {
-    localStorage.setItem("feelheal_seen_onboarding", "true");
-    router.push("/dashboard");
+    setShowQuestions(true);
+  }
+
+  if (showQuestions) {
+    return <OnboardingQuestions />;
   }
 
   return (
-    <div className="min-h-screen px-6 py-16 flex items-center" style={{
+    <div className="min-h-screen flex items-center justify-center px-6 py-16" style={{
       backgroundImage: "url('/wlecome.png')",
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat'
     }}>
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 items-center gap-10 place-items-center">
-        <div className="order-1 flex justify-center">
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 place-items-center gap-10">
+        <div className="order-2 md:order-1 flex justify-center">
           <img src="/hello.gif" alt="Hello animation" className="" style={{maxWidth: '460px', border: 0, outline: 'none', boxShadow: 'none'}} />
         </div>
-        <div className="order-2 text-center">
+        <div className="order-1 md:order-2 text-center md:text-left">
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight" style={{color: 'var(--feelheal-purple)'}}>
             Welcome to FeelHeal, {name}! 🌸
           </h1>
-          <p className="mt-4 text-lg md:text-xl mx-auto" style={{color: 'var(--feelheal-purple)'}}>
-            We’re so glad you’re here — this is your safe space to relax, reflect, and heal.
+          <p className="mt-4 text-lg md:text-xl max-w-xl mx-auto md:mx-0" style={{color: 'var(--feelheal-purple)'}}>
+            We're so glad you're here — this is your safe space to relax, reflect, and heal.
           </p>
           <div className="mt-8">
-            <button onClick={proceed} className="btn-primary text-base px-8 py-3">Let’s Get Started →</button>
+            <button onClick={proceed} className="btn-primary text-base px-8 py-3">Let's Get Started →</button>
           </div>
         </div>
       </div>
     </div>
   );
 }
-
-

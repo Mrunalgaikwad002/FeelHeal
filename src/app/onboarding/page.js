@@ -1,7 +1,5 @@
-import OnboardingWelcome from "../features/onboarding/OnboardingWelcome";
+import OnboardingWelcome from "./OnboardingWelcome";
 
 export default function OnboardingPage() {
   return <OnboardingWelcome />;
 }
-
-
