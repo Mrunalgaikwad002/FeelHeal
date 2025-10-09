@@ -106,7 +106,7 @@ export default function Dashboard() {
           <nav className="p-3 space-y-1 text-sm">
             {[
               { icon: "🏠", label: "Dashboard" },
-              { icon: "🌦️", label: "Mood Tracker", target: "#card-mood" },
+              { icon: "🌦️", label: "Mood Tracker", href: "/features/mood" },
               { icon: "✍️", label: "Journal", target: "#card-journal" },
               { icon: "🎯", label: "Goals", target: "#card-goals" },
               { icon: "🧘‍♀️", label: "Meditation", href: "/meditation" },
