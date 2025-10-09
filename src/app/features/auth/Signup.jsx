@@ -33,7 +33,7 @@ export default function Signup() {
     try {
       const user = { name, email, mood };
       localStorage.setItem("feelheal_user", JSON.stringify(user));
-      // Ensure onboarding shows on the very first login after signup
+      // Clear onboarding flags so new users see onboarding after login
       localStorage.removeItem("feelheal_seen_onboarding");
       localStorage.removeItem("feelheal_seen_dashboard");
       localStorage.removeItem("feelheal_onboarding_responses");

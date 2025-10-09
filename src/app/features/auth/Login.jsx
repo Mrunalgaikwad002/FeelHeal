@@ -17,11 +17,13 @@ export default function Login() {
       return;
     }
     try {
-      // If logging in as a different user than previously stored,
-      // reset first-time flags so onboarding shows properly
+      // Check if this is a returning user or new user
       const previousRaw = localStorage.getItem("feelheal_user");
       const previous = previousRaw ? JSON.parse(previousRaw) : null;
-      if (!previous || previous?.email !== email) {
+      const isReturningUser = previous && previous.email === email;
+      
+      // Only reset onboarding flags for truly new users (different email)
+      if (!isReturningUser) {
         localStorage.removeItem("feelheal_seen_onboarding");
         localStorage.removeItem("feelheal_seen_dashboard");
         localStorage.removeItem("feelheal_onboarding_responses");
@@ -40,6 +42,8 @@ export default function Login() {
 
       const user = { email, name: derivedName };
       localStorage.setItem("feelheal_user", JSON.stringify(user));
+      
+      // Check if user has seen onboarding - if not, show onboarding
       const seen = localStorage.getItem("feelheal_seen_onboarding");
       router.push(seen ? "/dashboard" : "/onboarding");
     } catch {
