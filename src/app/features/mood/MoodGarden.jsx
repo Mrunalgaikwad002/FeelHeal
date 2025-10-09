@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import GardenHeader from "./GardenHeader";
+import HowToUse from "./HowToUse";
+import MoodOptions from "./MoodOptions";
+import GardenDisplay from "./GardenDisplay";
+import GardenStats from "./GardenStats";
+import FeedbackToast from "./FeedbackToast";
 
 const MOOD_PLANTS = {
   happy: { emoji: "🌻", name: "Sunflower", color: "#FFD700", message: "Your happiness bloomed a sunflower 🌻" },
@@ -207,7 +213,7 @@ export default function MoodGarden() {
             {[
               { icon: "🏠", label: "Dashboard", href: "/dashboard" },
               { icon: "🌦️", label: "Mood Garden", href: "/features/mood" },
-              { icon: "✍️", label: "Journal", href: "/journal" },
+              { icon: "✍️", label: "Journal", href: "/features/journal" },
               { icon: "🎯", label: "Goals", href: "/goals" },
               { icon: "🧘‍♀️", label: "Meditation", href: "/meditation" },
               { icon: "💬", label: "AI Companion", href: "/chatbot" },
@@ -236,132 +242,16 @@ export default function MoodGarden() {
         {/* Main Content */}
         <main className="flex-1 px-6 py-8 relative z-10">
           <div className="container mx-auto">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold mb-2" style={{color: "var(--feelheal-purple)"}}>
-                🌸 Mood Garden
-              </h1>
-              <p className="text-gray-600">Nurture your emotional journey with nature</p>
-            </div>
-
-            {/* How to Use Instructions */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4 text-center" style={{color: "var(--feelheal-purple)"}}>
-                🌱 How to Grow Your Garden
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="text-center">
-                  <div className="text-3xl mb-2">1️⃣</div>
-                  <h3 className="font-semibold mb-2" style={{color: "var(--feelheal-purple)"}}>Select Your Mood</h3>
-                  <p className="text-gray-600">Choose how you're feeling from the mood buttons below</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl mb-2">2️⃣</div>
-                  <h3 className="font-semibold mb-2" style={{color: "var(--feelheal-purple)"}}>Watch It Grow</h3>
-                  <p className="text-gray-600">Each mood creates a unique plant in your garden</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl mb-2">3️⃣</div>
-                  <h3 className="font-semibold mb-2" style={{color: "var(--feelheal-purple)"}}>Nurture & Explore</h3>
-                  <p className="text-gray-600">Hover over plants to see when they were planted</p>
-                </div>
-              </div>
-              <div className="mt-4 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-xl">
-                <p className="text-center text-sm text-gray-700">
-                  
-                </p>
-              </div>
-            </div>
-
-            {/* Mood Selection */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4 text-center" style={{color: "var(--feelheal-purple)"}}>
-                How are you feeling today?
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {MOOD_OPTIONS.map((mood) => (
-                  <button
-                    key={mood.value}
-                    onClick={() => handleMoodSelect(mood)}
-                    className="flex flex-col items-center p-4 rounded-xl hover:scale-105 transition-all duration-200 bg-white/50 hover:bg-white/80"
-                    style={{ borderColor: mood.color }}
-                  >
-                    <span className="text-3xl mb-2">{mood.emoji}</span>
-                    <span className="text-sm font-medium" style={{color: "var(--feelheal-purple)"}}>
-                      {mood.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Garden Display */}
-            <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-6 min-h-[400px] relative overflow-hidden">
-              <h3 className="text-lg font-semibold mb-4 text-center" style={{color: "var(--feelheal-purple)"}}>
-                Your Garden ({garden.length} plants)
-              </h3>
-              
-              {garden.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-                  <span className="text-6xl mb-4">🌱</span>
-                  <p className="text-lg">Your garden is waiting for its first plant!</p>
-                  <p className="text-sm">Select a mood above to start growing 🌸</p>
-                </div>
-              ) : (
-                <div className="relative h-64">
-                  {garden.map((plant) => (
-                    <div
-                      key={plant.id}
-                      className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-                      style={{
-                        left: `${plant.position.x}%`,
-                        top: `${plant.position.y}%`,
-                        fontSize: `${1.5 * plant.size}rem`
-                      }}
-                      title={`${plant.name} - ${plant.date}`}
-                    >
-                      {plant.emoji}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Garden Stats */}
-            {garden.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold" style={{color: "var(--feelheal-purple)"}}>
-                    {garden.length}
-                  </div>
-                  <div className="text-sm text-gray-600">Total Plants</div>
-                </div>
-                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold" style={{color: "var(--feelheal-purple)"}}>
-                    {new Set(garden.map(p => p.mood)).size}
-                  </div>
-                  <div className="text-sm text-gray-600">Mood Types</div>
-                </div>
-                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 text-center">
-                  <div className="text-2xl font-bold" style={{color: "var(--feelheal-purple)"}}>
-                    {garden.filter(p => p.date === new Date().toISOString().split('T')[0]).length}
-                  </div>
-                  <div className="text-sm text-gray-600">Today's Plants</div>
-                </div>
-              </div>
-            )}
+            <GardenHeader />
+            <HowToUse />
+            <MoodOptions options={MOOD_OPTIONS} onSelect={handleMoodSelect} />
+            <GardenDisplay garden={garden} />
+            <GardenStats garden={garden} />
           </div>
         </main>
       </div>
 
-      {/* Positive Feedback Message */}
-      {showMessage && (
-        <div className="fixed top-32 right-8 z-40 bg-white/90 backdrop-blur-sm rounded-2xl px-6 py-3 shadow-lg animate-pulse">
-          <p className="text-lg font-medium text-center" style={{color: "var(--feelheal-purple)"}}>
-            {showMessage}
-          </p>
-        </div>
-      )}
+      <FeedbackToast message={showMessage} />
 
       {/* Confetti Animation */}
       {showConfetti && (
