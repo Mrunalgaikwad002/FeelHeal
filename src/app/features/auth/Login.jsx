@@ -17,36 +17,67 @@ export default function Login() {
       return;
     }
     try {
-      // Check if this is a returning user or new user
+      // Normalize email to lowercase for comparison
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      // Get previous user data if it exists
       const previousRaw = localStorage.getItem("feelheal_user");
       const previous = previousRaw ? JSON.parse(previousRaw) : null;
-      const isReturningUser = previous && previous.email === email;
+      const previousEmail = previous?.email?.toLowerCase();
+      const isReturningUser = previous && previousEmail === normalizedEmail;
       
-      // Only reset onboarding flags for truly new users (different email)
-      if (!isReturningUser) {
-        localStorage.removeItem("feelheal_seen_onboarding");
-        localStorage.removeItem("feelheal_seen_dashboard");
-        localStorage.removeItem("feelheal_onboarding_responses");
-      }
-
-      // Preserve stored name if this email was used before, otherwise derive from email
-      let derivedName = previous && previous.email === email ? previous.name : undefined;
-      if (!derivedName) {
-        const localPart = email.split("@")[0] || "";
-        derivedName = localPart
+      // Determine the name for this user
+      let userName;
+      if (isReturningUser && previous && previous.name) {
+        // Returning user: use their stored name
+        userName = previous.name;
+      } else {
+        // New user or email changed: derive name from email
+        const localPart = normalizedEmail.split("@")[0] || "";
+        userName = localPart
           .split(/[._-]+/)
           .filter(Boolean)
           .map(s => s.charAt(0).toUpperCase() + s.slice(1))
           .join(" ") || "Friend";
       }
 
-      const user = { email, name: derivedName };
+      // If this is a different email (new user), clear ALL user-specific data first
+      if (!isReturningUser) {
+        // Explicitly remove old user data
+        localStorage.removeItem("feelheal_user");
+        // Clear onboarding flags for new users
+        localStorage.removeItem("feelheal_seen_onboarding");
+        localStorage.removeItem("feelheal_seen_dashboard");
+        localStorage.removeItem("feelheal_onboarding_responses");
+        // Clear any other user-specific data that might exist
+        localStorage.removeItem("feelheal_mood_history");
+        localStorage.removeItem("feelheal_journal_entries");
+        localStorage.removeItem("feelheal_goals");
+      }
+
+      // Always save the current user data with the exact email and name
+      // Use the normalized email for storage
+      const user = { email: normalizedEmail, name: userName };
       localStorage.setItem("feelheal_user", JSON.stringify(user));
       
-      // Check if user has seen onboarding - if not, show onboarding
-      const seen = localStorage.getItem("feelheal_seen_onboarding");
-      router.push(seen ? "/dashboard" : "/onboarding");
-    } catch {
+      // Verify the data was saved correctly
+      const verify = localStorage.getItem("feelheal_user");
+      if (verify) {
+        const savedUser = JSON.parse(verify);
+        console.log("Saved user data:", savedUser);
+      }
+      
+      // Force a hard navigation to ensure dashboard picks up the new user data
+      // Route based on user type
+      if (isReturningUser) {
+        // Returning users always go to dashboard
+        window.location.replace("/dashboard");
+      } else {
+        // New users go to onboarding first
+        window.location.replace("/onboarding");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
       setError("Something went wrong. Please try again.");
     }
   }

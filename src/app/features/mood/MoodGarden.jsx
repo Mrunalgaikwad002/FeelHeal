@@ -186,18 +186,18 @@ export default function MoodGarden() {
               <button
                 aria-label="Toggle sidebar"
                 onClick={() => setIsSidebarOpen(v => !v)}
-                className="p-2 rounded-lg hover:bg-gray-100"
+                className="p-2.5 rounded-lg hover:bg-gray-100 text-xl"
                 style={{color: "var(--feelheal-purple)"}}
               >
                 {isSidebarOpen ? "☰" : "☷"}
               </button>
-              <span className="text-2xl">🌸</span>
-              <h1 className="text-xl font-bold" style={{color: "var(--feelheal-purple)"}}>
+              <span className="text-3xl">🌸</span>
+              <h1 className="text-2xl font-bold" style={{color: "var(--feelheal-purple)"}}>
                 FeelHeal
               </h1>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">Hi, {user.name} 👋</span>
+              <span className="text-base font-medium text-gray-700">Hi, {user.name} 👋</span>
             </div>
           </div>
         </div>
@@ -209,13 +209,13 @@ export default function MoodGarden() {
         <aside
           className={`${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 bg-white/70 backdrop-blur-sm border-r border-white/20 min-h-[calc(100vh-64px)] sticky top-16 hidden md:block`}
         >
-          <nav className="p-3 space-y-1 text-sm">
+          <nav className="p-4 space-y-1.5 text-base">
             {[
               { icon: "🏠", label: "Dashboard", href: "/dashboard" },
               { icon: "🌦️", label: "Mood Garden", href: "/features/mood" },
               { icon: "✍️", label: "Journal", href: "/features/journal" },
-              { icon: "🎯", label: "Goals", href: "/goals" },
-              { icon: "🧘‍♀️", label: "Meditation", href: "/meditation" },
+              { icon: "🌌", label: "Goal Universe", href: "/features/goals" },
+              { icon: "🧘‍♀️", label: "Meditation", href: "/features/meditation" },
               { icon: "💬", label: "AI Companion", href: "/chatbot" },
               { icon: "🕹️", label: "Games", href: "/games" },
               { icon: "😂", label: "Humor", href: "/humor" },
@@ -224,16 +224,16 @@ export default function MoodGarden() {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 cursor-pointer ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 cursor-pointer ${
                   item.href === "/features/mood" ? "bg-gray-100" : ""
                 }`}
-                style={{color: "var(--feelheal-purple)"}}
+                style={{color: "var(--feelheal-purple)", fontSize: "16px"}}
                 onClick={() => { 
                   if (item.href) { window.location.href = item.href; }
                 }}
               >
-                <span className="text-lg w-5 text-center">{item.icon}</span>
-                {isSidebarOpen && <span className="truncate">{item.label}</span>}
+                <span className="text-xl w-6 text-center">{item.icon}</span>
+                {isSidebarOpen && <span className="truncate font-medium">{item.label}</span>}
               </div>
             ))}
           </nav>

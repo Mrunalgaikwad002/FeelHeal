@@ -38,14 +38,14 @@ export default function JournalSection({ isFirstTime }) {
     <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-lg h-full flex flex-col card-hover">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center">
-          <span className="text-2xl mr-3">✍️</span>
-          <h3 className="text-xl font-semibold" style={{color: "var(--feelheal-purple)"}}>
+          <span className="text-3xl mr-3">✍️</span>
+          <h3 className="text-2xl font-semibold" style={{color: "var(--feelheal-purple)"}}>
             Journal
           </h3>
         </div>
         <button
           onClick={() => setShowNewEntry(!showNewEntry)}
-          className="px-3 py-1 text-sm rounded-full bg-purple-100 hover:bg-purple-200 transition-colors"
+          className="px-4 py-2 text-base font-medium rounded-full bg-purple-100 hover:bg-purple-200 transition-colors"
           style={{color: "var(--feelheal-purple)"}}
         >
           {showNewEntry ? "Cancel" : "New"}
@@ -55,15 +55,15 @@ export default function JournalSection({ isFirstTime }) {
       {isFirstTime ? (
         <div className="text-center flex-1 flex flex-col justify-center">
           <div className="mb-4">
-            <div className="text-4xl mb-2">📝</div>
-            <p className="text-gray-600 mb-4">Write your first reflection ✍️</p>
-            <p className="text-sm text-gray-500">
+            <div className="text-5xl mb-2">📝</div>
+            <p className="text-lg text-gray-600 mb-4">Write your first reflection ✍️</p>
+            <p className="text-base text-gray-500">
               Journaling can help you process emotions and track your mental wellness journey.
             </p>
           </div>
           <button
             onClick={() => setShowNewEntry(true)}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:from-purple-600 hover:to-pink-600 transition-all"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-base font-medium hover:from-purple-600 hover:to-pink-600 transition-all"
           >
             Start Writing
           </button>
@@ -76,20 +76,20 @@ export default function JournalSection({ isFirstTime }) {
                 value={newEntry}
                 onChange={(e) => setNewEntry(e.target.value)}
                 placeholder="How are you feeling today? What's on your mind?"
-                className="w-full p-3 rounded-xl border border-white/30 bg-white/50 focus:outline-none focus:border-purple-300 resize-none"
+                className="w-full p-4 rounded-xl border border-white/30 bg-white/50 focus:outline-none focus:border-purple-300 resize-none text-base"
                 rows={4}
-                style={{color: "var(--feelheal-purple)"}}
+                style={{color: "var(--feelheal-purple)", fontSize: "16px"}}
               />
               <div className="flex justify-end space-x-2 mt-2">
                 <button
                   onClick={() => setShowNewEntry(false)}
-                  className="px-4 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                  className="px-4 py-2 text-base font-medium rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveEntry}
-                  className="px-4 py-2 text-sm rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-colors"
+                  className="px-4 py-2 text-base font-medium rounded-lg bg-purple-500 hover:bg-purple-600 text-white transition-colors"
                 >
                   Save
                 </button>
@@ -99,12 +99,12 @@ export default function JournalSection({ isFirstTime }) {
             <div>
               {entries.length > 0 ? (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Recent Entries</h4>
+                  <h4 className="text-base font-medium text-gray-700 mb-3">Recent Entries</h4>
                   <div className="space-y-3">
                     {getRecentEntries().map((entry) => (
-                      <div key={entry.id} className="p-3 bg-white/50 rounded-xl border border-white/30">
-                        <p className="text-sm text-gray-700 line-clamp-2">{entry.content}</p>
-                        <p className="text-xs text-gray-500 mt-2">
+                      <div key={entry.id} className="p-4 bg-white/50 rounded-xl border border-white/30">
+                        <p className="text-base text-gray-700 line-clamp-2">{entry.content}</p>
+                        <p className="text-sm text-gray-500 mt-2">
                           {new Date(entry.date).toLocaleDateString('en-US', { 
                             month: 'short', 
                             day: 'numeric',
@@ -118,9 +118,9 @@ export default function JournalSection({ isFirstTime }) {
                 </div>
               ) : (
                 <div className="text-center py-4 mt-auto">
-                  <div className="text-3xl mb-2">📖</div>
-                  <p className="text-gray-600 text-sm">No entries yet</p>
-                  <p className="text-xs text-gray-500">Start writing to track your thoughts</p>
+                  <div className="text-4xl mb-2">📖</div>
+                  <p className="text-gray-600 text-base">No entries yet</p>
+                  <p className="text-sm text-gray-500">Start writing to track your thoughts</p>
                 </div>
               )}
             </div>

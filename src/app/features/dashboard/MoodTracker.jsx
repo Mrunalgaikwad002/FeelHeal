@@ -40,8 +40,8 @@ export default function MoodTracker({ isFirstTime }) {
   return (
     <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-lg h-full flex flex-col card-hover">
       <div className="flex items-center mb-4">
-        <span className="text-2xl mr-3">🌦️</span>
-        <h3 className="text-xl font-semibold" style={{color: "var(--feelheal-purple)"}}>
+        <span className="text-3xl mr-3">🌦️</span>
+        <h3 className="text-2xl font-semibold" style={{color: "var(--feelheal-purple)"}}>
           Mood Tracker
         </h3>
       </div>
@@ -49,26 +49,26 @@ export default function MoodTracker({ isFirstTime }) {
       {isFirstTime ? (
         <div className="text-center flex-1 flex flex-col justify-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <p className="text-gray-600 m-0">Select how you feel today</p>
+            <p className="text-base text-gray-600 m-0">Select how you feel today</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {moods.map((mood) => (
               <button
                 key={mood.value}
                 onClick={() => handleMoodSelect(mood)}
-                className={`p-3 rounded-xl border-2 transition-all ${
+                className={`p-4 rounded-xl border-2 transition-all ${
                   selectedMood?.value === mood.value 
                     ? `${mood.color} border-2` 
                     : "bg-white/50 hover:bg-white/70 border-white/30"
                 }`}
                 style={{color: "var(--feelheal-purple)"}}
               >
-                <div className="text-2xl mb-1">{mood.emoji}</div>
-                <div className="text-sm font-medium" style={{color: "var(--feelheal-purple)"}}>{mood.label}</div>
+                <div className="text-3xl mb-1">{mood.emoji}</div>
+                <div className="text-base font-medium" style={{color: "var(--feelheal-purple)"}}>{mood.label}</div>
               </button>
             ))}
           </div>
-          <p className="text-xs text-gray-500 mt-3">
+          <p className="text-sm text-gray-500 mt-3">
             💡 Click on a mood to log how you're feeling
           </p>
         </div>
@@ -77,14 +77,14 @@ export default function MoodTracker({ isFirstTime }) {
           {/* Quick mood selection */}
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-3">
-              <p className="text-sm text-gray-600 m-0">How are you feeling today?</p>
+              <p className="text-base text-gray-600 m-0">How are you feeling today?</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {moods.map((mood) => (
                 <button
                   key={mood.value}
                   onClick={() => handleMoodSelect(mood)}
-                  className={`px-3 py-2 rounded-full text-sm transition-all ${
+                  className={`px-4 py-2.5 rounded-full text-base font-medium transition-all ${
                     selectedMood?.value === mood.value 
                       ? `${mood.color} border-2` 
                       : "bg-white/50 hover:bg-white/70 border border-white/30"
@@ -100,12 +100,12 @@ export default function MoodTracker({ isFirstTime }) {
           {/* Recent mood history */}
           {moodHistory.length > 0 && (
             <div className="mt-auto">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Recent Moods</h4>
+              <h4 className="text-base font-medium text-gray-700 mb-2">Recent Moods</h4>
               <div className="flex space-x-2">
                 {getRecentMoods().slice(0, 5).map((entry, index) => (
                   <div key={index} className="text-center">
-                    <div className="text-lg">{entry.emoji}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-2xl">{entry.emoji}</div>
+                    <div className="text-sm text-gray-500">
                       {new Date(entry.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </div>
                   </div>

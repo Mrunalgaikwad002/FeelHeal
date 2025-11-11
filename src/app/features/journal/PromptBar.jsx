@@ -15,21 +15,21 @@ export default function PromptBar({ selectedMood, setSelectedMood }) {
   const prompt = useMemo(() => PROMPTS[(seed + PROMPTS.length) % PROMPTS.length], [seed]);
 
   return (
-    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 mb-6 flex items-center justify-between gap-4">
+    <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 mb-6 flex items-center justify-between gap-4">
       <div className="flex-1">
-        <p className="text-sm" style={{color: "var(--feelheal-purple)"}}>
+        <p className="text-lg font-medium" style={{color: "var(--feelheal-purple)"}}>
           ✨ {prompt}
         </p>
       </div>
       <button
-        className="px-3 py-2 rounded-lg bg-white shadow hover:shadow-md text-sm"
+        className="px-4 py-2.5 rounded-lg bg-white shadow hover:shadow-md text-base font-medium"
         style={{color: "var(--feelheal-purple)"}}
         onClick={() => setSeed(seed + 1)}
       >
         New Prompt
       </button>
       <select
-        className="px-3 py-2 rounded-lg bg-white shadow text-sm"
+        className="px-4 py-2.5 rounded-lg bg-white shadow text-base font-medium"
         value={selectedMood}
         onChange={(e) => setSelectedMood(e.target.value)}
         style={{color: "var(--feelheal-purple)"}}

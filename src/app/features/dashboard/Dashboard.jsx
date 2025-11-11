@@ -14,11 +14,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     try {
+      // Always read fresh user data from localStorage
       const userData = localStorage.getItem("feelheal_user");
-      const onboardingData = localStorage.getItem("feelheal_onboarding_responses");
       
       if (userData) {
-        setUser(JSON.parse(userData));
+        const parsedUser = JSON.parse(userData);
+        console.log("Dashboard loaded user data:", parsedUser);
+        setUser(parsedUser);
+      } else {
+        console.warn("No user data found in localStorage");
+        // If no user data, redirect to login
+        window.location.href = "/login";
+        return;
       }
       
       // Check if this is a first-time user (has onboarding data but no previous dashboard visits)
@@ -31,6 +38,8 @@ export default function Dashboard() {
       localStorage.setItem("feelheal_seen_dashboard", "true");
     } catch (error) {
       console.error("Error loading user data:", error);
+      // On error, redirect to login
+      window.location.href = "/login";
     }
   }, []);
 
@@ -82,13 +91,13 @@ export default function Dashboard() {
               <button
                 aria-label="Toggle sidebar"
                 onClick={() => setIsSidebarOpen(v => !v)}
-                className="p-2 rounded-lg hover:bg-gray-100"
+                className="p-2.5 rounded-lg hover:bg-gray-100 text-xl"
                 style={{color: "var(--feelheal-purple)"}}
               >
                 {isSidebarOpen ? "☰" : "☷"}
               </button>
-              <span className="text-2xl">🌸</span>
-              <h1 className="text-xl font-bold" style={{color: "var(--feelheal-purple)"}}>
+              <span className="text-3xl">🌸</span>
+              <h1 className="text-2xl font-bold" style={{color: "var(--feelheal-purple)"}}>
                 FeelHeal
               </h1>
             </div>
@@ -103,13 +112,13 @@ export default function Dashboard() {
         <aside
           className={`${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 bg-white/70 backdrop-blur-sm border-r border-white/20 min-h-[calc(100vh-64px)] sticky top-16 hidden md:block`}
         >
-          <nav className="p-3 space-y-1 text-sm">
+          <nav className="p-4 space-y-1.5 text-base">
             {[
               { icon: "🏠", label: "Dashboard" },
               { icon: "🌦️", label: "Mood Tracker", href: "/features/mood" },
               { icon: "✍️", label: "Journal", target: "#card-journal" },
-              { icon: "🎯", label: "Goals", target: "#card-goals" },
-              { icon: "🧘‍♀️", label: "Meditation", href: "/meditation" },
+              { icon: "🌌", label: "Goal Universe", href: "/features/goals" },
+              { icon: "🧘‍♀️", label: "Meditation", href: "/features/meditation" },
               { icon: "💬", label: "AI Companion", href: "/chatbot" },
               
               { icon: "🕹️", label: "Games", href: "/games" },
@@ -119,15 +128,15 @@ export default function Dashboard() {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 cursor-pointer"
-                style={{color: "var(--feelheal-purple)"}}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 cursor-pointer"
+                style={{color: "var(--feelheal-purple)", fontSize: "16px"}}
                 onClick={() => { 
                   if (item.target) { const el = document.querySelector(item.target); el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
                   if (item.href) { window.location.href = item.href; }
                 }}
               >
-                <span className="text-lg w-5 text-center">{item.icon}</span>
-                {isSidebarOpen && <span className="truncate">{item.label}</span>}
+                <span className="text-xl w-6 text-center">{item.icon}</span>
+                {isSidebarOpen && <span className="truncate font-medium">{item.label}</span>}
               </div>
             ))}
           </nav>
