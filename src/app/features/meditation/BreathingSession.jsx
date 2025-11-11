@@ -1,25 +1,35 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SESSION_LIBRARY } from "./sessionLibrary";
+import { useVoiceGuide } from "./useVoiceGuide";
 
 export default function BreathingSession({ duration, mode, onComplete, onCancel }) {
   const session = SESSION_LIBRARY[mode] || SESSION_LIBRARY.deep_breathe;
+  const [voiceOn, setVoiceOn] = useState(true);
 
+  const targetMinutes = useMemo(
+    () => (duration ?? session.duration ?? 5),
+    [duration, session.duration]
+  );
+
+  // auto end session after target minutes
   useEffect(() => {
     const timer = setTimeout(() => {
       onComplete();
-    }, (duration ?? session.duration ?? 5) * 60 * 1000);
-
+    }, targetMinutes * 60 * 1000);
     return () => clearTimeout(timer);
-  }, [duration, onComplete, session]);
+  }, [targetMinutes, onComplete]);
+
+  // Voice guidance with hook
+  useVoiceGuide(session, voiceOn);
 
   return (
     <div
       className="min-h-[70vh] flex flex-col items-center justify-center px-6 py-10"
       style={{ background: session.gradient }}
     >
-      <div className="max-w-3xl w-full bg-white/75 backdrop-blur-lg rounded-3xl p-8 md:p-10 shadow-2xl border border-white/40">
+      <div className="max-w-3xl w-full bg-white/75 backdrop-blur-lg rounded-3xl p-8 md:p-10 shadow-xl border border-white/40">
         <div className="flex flex-col items-center text-center space-y-6">
           <img
             src={session.gif}
@@ -33,6 +43,19 @@ export default function BreathingSession({ duration, mode, onComplete, onCancel 
             <p className="text-lg text-gray-700">
               {session.subtitle}
             </p>
+          </div>
+
+          {/* Voice guidance control */}
+          <div className="flex items-center gap-3 text-sm bg-white/70 border border-white/60 rounded-full px-3 py-1 shadow-sm">
+            <span className="text-gray-600">Voice guide</span>
+            <button
+              onClick={() => setVoiceOn(v => !v)}
+              className="px-3 py-1 rounded-full text-white"
+              style={{ background: voiceOn ? "var(--feelheal-purple)" : "#9CA3AF" }}
+              title={voiceOn ? "Turn off voice guide" : "Turn on voice guide"}
+            >
+              {voiceOn ? "On" : "Off"}
+            </button>
           </div>
 
           <div className="w-full grid gap-3 text-left">
@@ -75,7 +98,7 @@ export default function BreathingSession({ duration, mode, onComplete, onCancel 
           </div>
 
           <p className="text-sm text-gray-500">
-            We’ll wrap this session automatically after {duration ?? session.duration ?? 5} minutes if you’d prefer to stay present with the animation.
+            We’ll wrap this session automatically after {targetMinutes} minutes if you’d prefer to stay present with the animation.
           </p>
         </div>
       </div>

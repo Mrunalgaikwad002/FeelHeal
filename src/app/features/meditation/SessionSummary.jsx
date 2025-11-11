@@ -20,7 +20,12 @@ export default function SessionSummary({ duration, mode, onFinish }) {
 
   const playCompletionSound = () => {
     try {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const audioContext = new Ctx();
+      if (audioContext.state === "suspended") {
+        audioContext.resume().catch(() => {});
+      }
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -31,11 +36,12 @@ export default function SessionSummary({ duration, mode, onFinish }) {
       oscillator.type = 'sine';
       
       gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.1, audioContext.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      // Louder and slightly longer decay
+      gainNode.gain.linearRampToValueAtTime(0.18, audioContext.currentTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.02, audioContext.currentTime + 0.4);
       
       oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3);
+      oscillator.stop(audioContext.currentTime + 0.4);
     } catch (error) {
       console.log("Sound not available");
     }
@@ -79,7 +85,7 @@ export default function SessionSummary({ duration, mode, onFinish }) {
 
       {/* Summary Card */}
       <div
-        className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 shadow-2xl border max-w-md w-full animate-fadeInSoft"
+        className="bg-white/95 backdrop-blur-sm rounded-3xl p-10 shadow-xl border max-w-md w-full animate-fadeInSoft"
         style={{ borderColor: `${session.accent}33` }}
       >
         <h2 className="text-3xl font-bold mb-2" style={{color: "var(--feelheal-purple)"}}>
