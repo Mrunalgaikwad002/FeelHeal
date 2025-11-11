@@ -22,8 +22,9 @@ export default function DailyCheckIn({ goals, onComplete, onClose }) {
   }, [goals, activeGoals, onClose]);
 
   const generateQuestion = (goalTitle) => {
-    // Convert goal title to a question
-    const title = goalTitle.toLowerCase().trim();
+    // Convert goal title to a question (defensive against undefined)
+    const safeTitle = typeof goalTitle === "string" ? goalTitle : "";
+    const title = safeTitle.toLowerCase().trim();
     
     // Common patterns with time extraction
     if (title.includes('wake up') || title.includes('wake')) {
@@ -79,7 +80,7 @@ export default function DailyCheckIn({ goals, onComplete, onClose }) {
     
     // Default: convert to question format
     // Remove common prefixes and make it a question
-    let question = goalTitle.trim();
+    let question = safeTitle.trim() || "work on this goal";
     const lowerQuestion = question.toLowerCase();
     
     if (lowerQuestion.startsWith('to ')) {
@@ -105,8 +106,8 @@ export default function DailyCheckIn({ goals, onComplete, onClose }) {
     return null;
   }
 
-  const currentGoal = uncheckedGoals[currentGoalIndex];
-  const question = generateQuestion(currentGoal.title);
+  const currentGoal = uncheckedGoals[Math.min(currentGoalIndex, Math.max(0, uncheckedGoals.length - 1))];
+  const question = generateQuestion(currentGoal?.title);
 
   const handleAnswer = (completed) => {
     const newAnswers = {

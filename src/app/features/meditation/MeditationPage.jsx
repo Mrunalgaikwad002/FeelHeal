@@ -168,7 +168,7 @@ export default function MeditationPage() {
               { icon: "✍️", label: "Journal", href: "/features/journal" },
               { icon: "🌌", label: "Goal Universe", href: "/features/goals" },
               { icon: "🧘‍♀️", label: "Meditation", href: "/features/meditation" },
-              { icon: "💬", label: "AI Companion", href: "/chatbot" },
+              { icon: "💬", label: "MyBuddy", href: "/features/companion" },
               { icon: "🕹️", label: "Games", href: "/games" },
               { icon: "😂", label: "Humor", href: "/humor" },
               { icon: "⚙️", label: "Settings" },

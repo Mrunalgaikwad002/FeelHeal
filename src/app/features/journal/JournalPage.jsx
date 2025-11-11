@@ -72,9 +72,9 @@ export default function JournalPage() {
               >
                 {isSidebarOpen ? "☰" : "☷"}
               </button>
-              <span className="text-3xl">📓</span>
+              <span className="text-3xl">🌸</span>
               <h1 className="text-2xl font-bold" style={{color: "var(--feelheal-purple)"}}>
-                My Digital Diary
+                FeelHeal
               </h1>
             </div>
             <div className="flex items-center gap-4">
@@ -96,9 +96,9 @@ export default function JournalPage() {
               { icon: "✍️", label: "Journal", href: "/features/journal" },
               { icon: "🌌", label: "Goal Universe", href: "/features/goals" },
               { icon: "🧘‍♀️", label: "Meditation", href: "/features/meditation" },
-              { icon: "💬", label: "AI Companion", href: "/chatbot" },
+              { icon: "💬", label: "MyBuddy", href: "/features/companion" },
               { icon: "🕹️", label: "Games", href: "/games" },
-              { icon: "😂", label: "Humor", href: "/humor" },
+              { icon: "😂", label: "Humor", href: "/features/humor" },
               { icon: "⚙️", label: "Settings" },
               { icon: "🔓", label: "Logout" }
             ].map((item, idx) => (
@@ -118,6 +118,11 @@ export default function JournalPage() {
         </aside>
 
         <main className="flex-1 min-w-0 px-6 py-8 relative z-10">
+          {/* Centered title for consistency */}
+          <div className="text-center mb-6">
+            <div className="text-5xl mb-2">📓</div>
+            <h1 className="text-4xl font-bold" style={{color: "var(--feelheal-purple)"}}>My Digital Diary</h1>
+          </div>
           {locked ? (
             <PinLock onUnlock={() => setLocked(false)} />
           ) : (

@@ -276,9 +276,9 @@ export default function GoalUniverse() {
               { icon: "✍️", label: "Journal", href: "/features/journal" },
               { icon: "🌌", label: "Goal Universe", href: "/features/goals" },
               { icon: "🧘‍♀️", label: "Meditation", href: "/features/meditation" },
-              { icon: "💬", label: "AI Companion", href: "/chatbot" },
+              { icon: "💬", label: "MyBuddy", href: "/features/companion" },
               { icon: "🕹️", label: "Games", href: "/games" },
-              { icon: "😂", label: "Humor", href: "/humor" },
+              { icon: "😂", label: "Humor", href: "/features/humor" },
               { icon: "⚙️", label: "Settings" },
               { icon: "🔓", label: "Logout" }
             ].map((item, idx) => (

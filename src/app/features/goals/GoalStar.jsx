@@ -1,12 +1,14 @@
 "use client";
 
 export default function GoalStar({ goal, onHover, onLeave, onClick, isHovered, isSelected }) {
-  const size = goal.completed ? 32 : 20 + (goal.progress / 100) * 12;
-  const opacity = goal.brightness || (0.4 + (goal.progress / 100) * 0.6);
-  const glowSize = goal.completed ? 40 : 20 + (goal.progress / 100) * 20;
+  const progress = Number.isFinite(goal?.progress) ? goal.progress : 0;
+  const size = goal?.completed ? 32 : 20 + (progress / 100) * 12;
+  const computedOpacity = goal?.brightness ?? (0.4 + (progress / 100) * 0.6);
+  const opacity = Math.max(0.1, Math.min(1, Number.isFinite(computedOpacity) ? computedOpacity : 0.4));
+  const glowSize = goal?.completed ? 40 : 20 + (progress / 100) * 20;
   
   // Choose star emoji based on completion and progress
-  const starEmoji = goal.completed ? "⭐" : (goal.progress > 50 ? "🌟" : "✨");
+  const starEmoji = goal?.completed ? "⭐" : (progress > 50 ? "🌟" : "✨");
 
   return (
     <div
