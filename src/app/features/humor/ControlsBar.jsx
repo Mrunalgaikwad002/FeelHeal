@@ -4,7 +4,7 @@ import { STORAGE_LANG, safeSet } from "./StorageKeys";
 
 export default function ControlsBar({ language, setLanguage, laughsToday, onChange }) {
 	return (
-		<div className="flex flex-wrap items-center gap-4 mb-6 text-lg">
+		<div className="flex flex-wrap items-center gap-4 mb-6 text-base">
 			<div className="flex items-center gap-3 bg-white/80 border border-white/60 rounded-full px-4 py-2">
 				<span className="text-gray-800 font-medium">Language</span>
 				{["en","hi"].map(l => (

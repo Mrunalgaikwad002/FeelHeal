@@ -110,29 +110,39 @@ export default function Dashboard() {
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 bg-white/70 backdrop-blur-sm border-r border-white/20 min-h-[calc(100vh-64px)] sticky top-16 hidden md:block`}
+          className={`${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 bg-white/70 backdrop-blur-sm border-r border-white/20 h-[calc(100vh-64px)] sticky top-16 self-start hidden md:block flex-shrink-0`}
         >
-          <nav className="p-4 space-y-1.5 text-base">
+          <nav className="p-4 space-y-1.5 text-lg">
             {[
               { icon: "🏠", label: "Dashboard" },
-              { icon: "🌦️", label: "Mood Tracker", href: "/features/mood" },
+              { icon: "🌦️", label: "Mood Garden", href: "/features/mood" },
               { icon: "✍️", label: "Journal", target: "#card-journal" },
               { icon: "🌌", label: "Goal Universe", href: "/features/goals" },
               { icon: "🧘‍♀️", label: "Meditation", href: "/features/meditation" },
               { icon: "💬", label: "MyBuddy", href: "/features/companion" },
               
               { icon: "🕹️", label: "Games", href: "/games" },
-              { icon: "😂", label: "Humor", href: "/features/humor" },
-              { icon: "⚙️", label: "Settings" },
+              { icon: "😂", label: "Humor", href: "/humor" },
+              { icon: "⚙️", label: "Settings", href: "/features/settings" },
               { icon: "🔓", label: "Logout" }
             ].map((item, idx) => (
               <div
                 key={idx}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 cursor-pointer"
-                style={{color: "var(--feelheal-purple)", fontSize: "16px"}}
+                style={{color: "var(--feelheal-purple)", fontSize: "18px"}}
                 onClick={() => { 
-                  if (item.target) { const el = document.querySelector(item.target); el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-                  if (item.href) { window.location.href = item.href; }
+                  if (item.label === "Logout") {
+                    localStorage.removeItem("feelheal_user");
+                    localStorage.removeItem("feelheal_seen_onboarding");
+                    localStorage.removeItem("feelheal_seen_dashboard");
+                    window.location.href = "/";
+                  } else if (item.target) { 
+                    const el = document.querySelector(item.target); 
+                    el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+                    return; 
+                  } else if (item.href) { 
+                    window.location.href = item.href; 
+                  }
                 }}
               >
                 <span className="text-xl w-6 text-center">{item.icon}</span>

@@ -42,18 +42,18 @@ export default function GamesPage() {
 	return (
 		<div className="min-h-screen px-6 py-10 w-full text-[#2b2150]">
 			<div className="text-center mb-4">
-				<div className="text-6xl mb-3">🎮</div>
-				<h1 className="text-5xl font-bold" style={{color: "var(--feelheal-purple)"}}>
+				<div className="text-5xl mb-3">🎮</div>
+				<h1 className="text-4xl font-bold" style={{color: "var(--feelheal-purple)"}}>
 					Play Zone — Take a mindful break!
 				</h1>
-				<p className="mt-3 text-lg text-gray-700">Relax, laugh, or recharge with short games designed to lift your mood.</p>
+				<p className="mt-3 text-lg text-gray-600">Relax, laugh, or recharge with short games designed to lift your mood.</p>
 			</div>
 			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-10">
 				{GAME_CARDS.map(card => (
 					<div key={card.key} className="rounded-3xl bg-white/85 border border-white/60 shadow-lg p-7 hover:shadow-xl transition transform hover:-translate-y-0.5">
 						<div className="text-5xl">{card.icon}</div>
 						<h3 className="text-2xl font-semibold mt-4" style={{color: "var(--feelheal-purple)"}}>{card.title}</h3>
-						<p className="text-base text-gray-700 mt-2">{card.desc}</p>
+						<p className="text-base text-gray-600 mt-2">{card.desc}</p>
 						<button
 							onClick={() => setActiveKey(card.key)}
 							className="mt-5 px-6 py-3 rounded-2xl text-white font-semibold hover:brightness-110 transition"

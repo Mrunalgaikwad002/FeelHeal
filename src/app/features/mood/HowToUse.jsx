@@ -3,7 +3,7 @@
 export default function HowToUse() {
   return (
     <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 mb-8">
-      <h2 className="text-xl font-semibold mb-4 text-center" style={{color: "var(--feelheal-purple)"}}>
+      <h2 className="text-2xl font-semibold mb-4 text-center" style={{color: "var(--feelheal-purple)"}}>
         🌱 How to Grow Your Garden
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">

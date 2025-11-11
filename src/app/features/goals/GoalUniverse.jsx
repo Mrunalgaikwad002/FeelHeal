@@ -267,9 +267,9 @@ export default function GoalUniverse() {
       <div className="flex w-full">
         {/* Sidebar */}
         <aside
-          className={`${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 bg-white/10 backdrop-blur-sm border-r border-white/20 min-h-[calc(100vh-64px)] sticky top-16 hidden md:block flex-shrink-0`}
+          className={`${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 bg-white/10 backdrop-blur-sm border-r border-white/20 h-[calc(100vh-64px)] sticky top-16 self-start hidden md:block flex-shrink-0`}
         >
-          <nav className="p-4 space-y-1.5 text-base">
+          <nav className="p-4 space-y-1.5 text-lg">
             {[
               { icon: "🏠", label: "Dashboard", href: "/dashboard" },
               { icon: "🌦️", label: "Mood Garden", href: "/features/mood" },
@@ -278,8 +278,8 @@ export default function GoalUniverse() {
               { icon: "🧘‍♀️", label: "Meditation", href: "/features/meditation" },
               { icon: "💬", label: "MyBuddy", href: "/features/companion" },
               { icon: "🕹️", label: "Games", href: "/games" },
-              { icon: "😂", label: "Humor", href: "/features/humor" },
-              { icon: "⚙️", label: "Settings" },
+              { icon: "😂", label: "Humor", href: "/humor" },
+              { icon: "⚙️", label: "Settings", href: "/features/settings" },
               { icon: "🔓", label: "Logout" }
             ].map((item, idx) => (
               <div
@@ -287,8 +287,17 @@ export default function GoalUniverse() {
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/20 cursor-pointer ${
                   item.href === "/features/goals" ? "bg-white/20" : ""
                 }`}
-                style={{color: "#ffffff", fontSize: "16px"}}
-                onClick={() => { if (item.href) window.location.href = item.href; }}
+                style={{color: "#ffffff", fontSize: "18px"}}
+                onClick={() => { 
+                  if (item.label === "Logout") {
+                    localStorage.removeItem("feelheal_user");
+                    localStorage.removeItem("feelheal_seen_onboarding");
+                    localStorage.removeItem("feelheal_seen_dashboard");
+                    window.location.href = "/";
+                  } else if (item.href) { 
+                    window.location.href = item.href; 
+                  }
+                }}
               >
                 <span className="text-xl w-6 text-center">{item.icon}</span>
                 {isSidebarOpen && <span className="truncate font-medium">{item.label}</span>}

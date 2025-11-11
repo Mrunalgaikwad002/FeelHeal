@@ -26,7 +26,7 @@ export default function WelcomeSection({ user, isFirstTime }) {
     <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 mb-8 border border-white/20 shadow-lg relative overflow-hidden">
       <div className="text-center">
         {/* Welcome Message */}
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 flex items-center justify-center gap-2" style={{color: "var(--feelheal-purple)"}}>
+        <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-2" style={{color: "var(--feelheal-purple)"}}>
           {isFirstTime ? (
             <>
               Welcome to FeelHeal, {user.name}! 💖

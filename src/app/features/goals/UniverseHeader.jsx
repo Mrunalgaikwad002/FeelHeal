@@ -3,7 +3,7 @@
 export default function UniverseHeader({ viewMode, setViewMode, completedCount, totalCount }) {
   return (
     <div className="text-center mb-8">
-      <h1 className="text-5xl font-bold mb-3 animate-pulse" style={{color: "#ffffff"}}>
+      <h1 className="text-4xl font-bold mb-3 animate-pulse" style={{color: "#ffffff"}}>
         🌌 Goal Universe
       </h1>
       <p className="text-lg text-white/80 mb-6 animate-fadeInSoft">Your dreams light up the night sky</p>

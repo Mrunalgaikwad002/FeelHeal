@@ -163,7 +163,7 @@ export default function LaughLounge() {
       <div className="flex w-full">
         <SidebarNav isOpen={isSidebarOpen} />
 
-        <main className="flex-1 min-w-0 px-6 py-8 relative z-10 text-lg md:text-xl">
+        <main className="flex-1 min-w-0 px-6 py-8 relative z-10 text-base">
           {/* Centered title for consistency with other pages */}
           <div className="text-center mb-6">
             <div className="text-5xl mb-2">😂</div>

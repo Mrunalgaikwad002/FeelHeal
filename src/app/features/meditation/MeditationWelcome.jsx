@@ -301,10 +301,10 @@ export default function MeditationWelcome({ userMood, onStart }) {
       {/* Main Welcome */}
       <div className="mt-8 w-full">
         {/* Sound is always on at full app volume (system/device volume applies). */}
-        <h1 className="text-5xl font-bold mb-4" style={{color: "var(--feelheal-purple)"}}>
+        <h1 className="text-4xl font-bold mb-4" style={{color: "var(--feelheal-purple)"}}>
           🧘‍♀️ Meditation Space
         </h1>
-        <p className="text-xl text-gray-700 mb-8">
+        <p className="text-lg text-gray-600 mb-8">
           Your peaceful moment awaits
         </p>
 
@@ -357,7 +357,7 @@ export default function MeditationWelcome({ userMood, onStart }) {
                   <h3 className="text-2xl font-bold" style={{ color: option.accent }}>
                     {option.title}
                   </h3>
-                  <p className="text-base text-gray-700">
+                  <p className="text-base text-gray-600">
                     {option.subtitle}
                   </p>
 

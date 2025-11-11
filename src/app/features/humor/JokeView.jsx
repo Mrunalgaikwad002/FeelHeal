@@ -7,7 +7,7 @@ export default function JokeView({ anim, bursts, joke, isFav, gifSrc, onReact, o
 	const [bounceKey, setBounceKey] = useState(0);
 
 	return (
-		<div className="max-w-3xl mx-auto text-lg">
+		<div className="max-w-3xl mx-auto text-base">
 			{/* Single big GIF above the joke */}
 			<div className="flex justify-center mb-6">
 				<img src={gifSrc} alt="laugh" className="w-36 h-36 object-cover rounded-2xl shadow" />
@@ -29,7 +29,7 @@ export default function JokeView({ anim, bursts, joke, isFav, gifSrc, onReact, o
 						{b.emoji}
 					</span>
 				))}
-				<p className="text-2xl md:text-3xl text-gray-800 leading-relaxed whitespace-pre-wrap">
+				<p className="text-lg text-gray-800 leading-relaxed whitespace-pre-wrap">
 					{joke}
 				</p>
 				<div className="flex items-center justify-center gap-4 mt-6">
