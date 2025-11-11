@@ -191,7 +191,7 @@ export default function MeditationPage() {
 
         {/* Main Content */}
         <main className="flex-1 min-w-0 px-6 py-8 relative z-10">
-          <div className="w-full max-w-4xl mx-auto">
+          <div className="w-full">
             {sessionState === "welcome" && (
               <MeditationWelcome 
                 userMood={userMood}

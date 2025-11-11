@@ -309,7 +309,7 @@ export default function MeditationWelcome({ userMood, onStart }) {
         </p>
 
         {/* Session Options */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 w-full">
           {SESSION_OPTIONS.map(option => {
             const isRecommended = option.key === recommendedKey;
             const cardDuration = isRecommended && suggestion?.duration ? suggestion.duration : option.duration;
@@ -323,12 +323,12 @@ export default function MeditationWelcome({ userMood, onStart }) {
             return (
             <div
               key={option.key}
-              className={`relative rounded-[26px] p-[2px] bg-gradient-to-br ${meta.ring} cursor-pointer transition-transform duration-300 hover:-translate-y-0.5`}
+              className={`relative rounded-[26px] p-[2px] bg-gradient-to-br ${meta.ring} cursor-pointer transition-transform duration-300 hover:-translate-y-0.5 w-full`}
               style={{ boxShadow: `0 10px 24px ${option.accent}22` }}
               onClick={() => onStart(option.key, cardDuration)}
             >
               <div
-                className="relative rounded-[24px] p-6 md:p-7 bg-white/70 backdrop-blur-md overflow-hidden"
+                className="relative rounded-[24px] p-6 md:p-7 bg-white/70 backdrop-blur-md overflow-hidden w-full min-h-[340px]"
                 style={{ background: option.gradient }}
               >
                 {/* Decorative floating emojis */}
@@ -348,11 +348,11 @@ export default function MeditationWelcome({ userMood, onStart }) {
                 )}
 
                 {/* Content */}
-                <div className="flex flex-col items-center text-center space-y-4 relative z-10">
+                <div className="flex flex-col items-center text-center space-y-4 relative z-10 w-full">
                   <img
                     src={option.gif}
                     alt={option.title}
-                    className="w-44 h-44 md:w-48 md:h-48 object-contain drop-shadow-md rounded-2xl"
+                    className="w-52 h-52 md:w-60 md:h-60 object-contain drop-shadow-md rounded-2xl"
                   />
                   <h3 className="text-2xl font-bold" style={{ color: option.accent }}>
                     {option.title}

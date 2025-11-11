@@ -26,21 +26,21 @@ export default function BreathingSession({ duration, mode, onComplete, onCancel 
 
   return (
     <div
-      className="min-h-[70vh] flex flex-col items-center justify-center px-6 py-10"
+      className="min-h-screen w-full flex flex-col items-center justify-start md:justify-center"
       style={{ background: session.gradient }}
     >
-      <div className="max-w-3xl w-full bg-white/75 backdrop-blur-lg rounded-3xl p-8 md:p-10 shadow-xl border border-white/40">
-        <div className="flex flex-col items-center text-center space-y-6">
+      <div className="w-full max-w-[1200px] px-6 md:px-10 py-8 md:py-12">
+        <div className="flex flex-col items-center text-center gap-6 md:gap-8">
           <img
             src={session.gif}
             alt={session.title}
-            className="w-64 h-64 object-contain drop-shadow-xl"
+            className="w-64 h-64 md:w-80 md:h-80 object-contain drop-shadow-xl"
           />
           <div>
-            <h2 className="text-3xl font-bold mb-2" style={{ color: "var(--feelheal-purple)" }}>
+            <h2 className="text-4xl font-bold mb-2" style={{ color: "var(--feelheal-purple)" }}>
               {session.title}
             </h2>
-            <p className="text-lg text-gray-700">
+            <p className="text-xl text-gray-700">
               {session.subtitle}
             </p>
           </div>
@@ -58,30 +58,30 @@ export default function BreathingSession({ duration, mode, onComplete, onCancel 
             </button>
           </div>
 
-          <div className="w-full grid gap-3 text-left">
+          <div className="w-full grid gap-3 md:gap-4 text-left">
             {session.instructions.map((step, index) => (
               <div
                 key={index}
-                className="flex items-start gap-3 bg-white/85 rounded-2xl px-4 py-3 shadow-inner"
+                className="flex items-start gap-3 bg-white/80 rounded-2xl px-5 py-4 shadow"
               >
-                <span className="text-xl font-semibold" style={{ color: "var(--feelheal-purple)" }}>
+                <span className="text-xl md:text-2xl font-semibold" style={{ color: "var(--feelheal-purple)" }}>
                   {index + 1}.
                 </span>
-                <p className="text-base text-gray-700 leading-relaxed">
+                <p className="text-base md:text-lg text-gray-700 leading-relaxed">
                   {step}
                 </p>
               </div>
             ))}
           </div>
 
-          <p className="text-base text-gray-600 italic">
+          <p className="text-lg text-gray-700 italic">
             {session.affirmation}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 w-full justify-center mt-4">
             <button
               onClick={onCancel}
-              className="px-6 py-3 rounded-xl text-base font-medium text-gray-700 bg-white/70 hover:bg-white transition-colors shadow-sm"
+              className="px-6 py-3 rounded-xl text-base font-medium text-gray-700 bg-white/70 hover:bg-white transition-colors shadow"
             >
               Choose Another Session
             </button>
@@ -97,7 +97,7 @@ export default function BreathingSession({ duration, mode, onComplete, onCancel 
             </button>
           </div>
 
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-600">
             We’ll wrap this session automatically after {targetMinutes} minutes if you’d prefer to stay present with the animation.
           </p>
         </div>
