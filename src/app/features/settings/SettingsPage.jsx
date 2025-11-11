@@ -9,6 +9,10 @@ import CompanionSection from "./CompanionSection";
 import PrivacySection from "./PrivacySection";
 import AccountSection from "./AccountSection";
 import AboutSection from "./AboutSection";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getCurrentProfile } from "@/lib/api/profiles";
+import { getCurrentSettings, updateCurrentSettings } from "@/lib/api/settings";
+import { getGoalStatistics, getHumorStatistics } from "@/lib/api/statistics";
 
 export default function SettingsPage() {
   const [user, setUser] = useState(null);
@@ -16,6 +20,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState(defaultSettings);
   const [progress, setProgress] = useState({ goals: 0, smiles: 0, dances: 0 });
   const [feedback, setFeedback] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const selectedThemeGradient = useMemo(() => {
     switch (settings.theme) {
@@ -33,48 +38,75 @@ export default function SettingsPage() {
   }, [settings.theme]);
 
   useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem("feelheal_user");
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      } else {
+    async function loadData() {
+      try {
+        // Get current user
+        const { user: authUser, error: userError } = await getCurrentUser();
+        
+        if (userError || !authUser) {
+          window.location.href = "/login";
+          return;
+        }
+
+        // Get profile
+        const { profile } = await getCurrentProfile();
+        
+        const displayUser = {
+          id: authUser.id,
+          email: authUser.email,
+          name: profile?.display_name || 
+                authUser.user_metadata?.display_name || 
+                authUser.email?.split("@")[0] || 
+                "User"
+        };
+        setUser(displayUser);
+
+        // Load settings from Supabase
+        const { settings: dbSettings, error: settingsError } = await getCurrentSettings();
+        
+        if (!settingsError && dbSettings) {
+          setSettings((prev) => ({ ...prev, ...dbSettings }));
+        }
+
+        // Load progress statistics
+        const [goalStats, humorStats] = await Promise.all([
+          getGoalStatistics(),
+          getHumorStatistics()
+        ]);
+
+        setProgress({
+          goals: goalStats.statistics?.total_goals_completed || 0,
+          smiles: humorStats.statistics?.total_smiles_saved || 0,
+          dances: 0 // Meditation stats can be added later
+        });
+      } catch (error) {
+        console.error("Error loading settings data", error);
         window.location.href = "/login";
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error loading user data", error);
-      window.location.href = "/login";
     }
+
+    loadData();
   }, []);
 
+  // Save settings to Supabase when they change (debounced)
   useEffect(() => {
-    try {
-      const storedSettings = localStorage.getItem("feelheal_settings");
-      if (storedSettings) {
-        setSettings((prev) => ({ ...prev, ...JSON.parse(storedSettings) }));
-      }
-    } catch (error) {
-      console.error("Unable to read saved settings", error);
+    if (!loading && user) {
+      const saveSettings = async () => {
+        try {
+          await updateCurrentSettings(settings);
+        } catch (error) {
+          console.error("Error saving settings", error);
+        }
+      };
+      
+      const timeoutId = setTimeout(saveSettings, 500);
+      return () => clearTimeout(timeoutId);
     }
+  }, [settings, loading, user]);
 
-    try {
-      const goalData = JSON.parse(localStorage.getItem("feelheal_goals") || "[]");
-      const smilesData = JSON.parse(localStorage.getItem("feelheal_saved_smiles") || "[]");
-      const danceData = JSON.parse(localStorage.getItem("feelheal_dance_sessions") || "[]");
-      setProgress({
-        goals: Array.isArray(goalData) ? goalData.length : 0,
-        smiles: Array.isArray(smilesData) ? smilesData.length : 0,
-        dances: Array.isArray(danceData) ? danceData.length : 0,
-      });
-    } catch (error) {
-      console.error("Unable to read progress data", error);
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem("feelheal_settings", JSON.stringify(settings));
-  }, [settings]);
-
-  const handleSettingChange = (path, value) => {
+  const handleSettingChange = async (path, value) => {
     setSettings((prev) => {
       const clone = JSON.parse(JSON.stringify(prev));
       let reference = clone;
@@ -88,20 +120,47 @@ export default function SettingsPage() {
       reference[path[path.length - 1]] = value;
       return clone;
     });
-    setFeedback("Saved 🌸");
+    
+    // Save to Supabase
+    try {
+      const updatedSettings = { ...settings };
+      let ref = updatedSettings;
+      for (let i = 0; i < path.length - 1; i += 1) {
+        ref = ref[path[i]];
+      }
+      ref[path[path.length - 1]] = value;
+      
+      await updateCurrentSettings(updatedSettings);
+      setFeedback("Saved 🌸");
+    } catch (error) {
+      console.error("Error saving setting", error);
+      setFeedback("Error saving");
+    }
+    
     setTimeout(() => setFeedback(""), 1800);
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     setSettings(defaultSettings);
-    setFeedback("Settings reset to default");
+    try {
+      await updateCurrentSettings(defaultSettings);
+      setFeedback("Settings reset to default");
+    } catch (error) {
+      console.error("Error resetting settings", error);
+      setFeedback("Error resetting");
+    }
   };
 
-  const handleClearData = () => {
+  const handleClearData = async () => {
     try {
-      ["feelheal_mood_history", "feelheal_journal_entries", "feelheal_saved_smiles"].forEach((key) =>
-        localStorage.removeItem(key)
-      );
+      const { deleteCurrentMoodInsights } = await import("@/lib/api/mood");
+      const { deleteAllJournalEntries } = await import("@/lib/api/journal");
+      
+      await Promise.all([
+        deleteCurrentMoodInsights(),
+        deleteAllJournalEntries()
+      ]);
+      
       setFeedback("Selected data cleared");
     } catch (error) {
       console.error("Unable to clear data", error);
@@ -109,7 +168,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: "var(--feelheal-purple)" }} />
@@ -200,12 +259,18 @@ export default function SettingsPage() {
                   item.href === "/features/settings" ? "bg-gray-100" : ""
                 }`}
                 style={{ color: "var(--feelheal-purple)", fontSize: "18px" }}
-                onClick={() => {
+                onClick={async () => {
                   if (item.label === "Logout") {
-                    localStorage.removeItem("feelheal_user");
-                    localStorage.removeItem("feelheal_seen_onboarding");
-                    localStorage.removeItem("feelheal_seen_dashboard");
-                    window.location.href = "/";
+                    try {
+                      const { signOut } = await import("@/lib/api/auth");
+                      await signOut();
+                      localStorage.removeItem("feelheal_seen_onboarding");
+                      localStorage.removeItem("feelheal_seen_dashboard");
+                      window.location.href = "/";
+                    } catch (error) {
+                      console.error("Logout error:", error);
+                      window.location.href = "/";
+                    }
                   } else if (item.href) {
                     window.location.href = item.href;
                   }

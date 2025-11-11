@@ -6,44 +6,71 @@ import MoodTracker from "./MoodTracker";
 import JournalSection from "./JournalSection";
 import GoalsSection from "./GoalsSection";
 import QuickActions from "./QuickActions";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getCurrentProfile } from "@/lib/api/profiles";
+import { updateLastActiveDate } from "@/lib/api/profiles";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      // Always read fresh user data from localStorage
-      const userData = localStorage.getItem("feelheal_user");
-      
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        console.log("Dashboard loaded user data:", parsedUser);
-        setUser(parsedUser);
-      } else {
-        console.warn("No user data found in localStorage");
-        // If no user data, redirect to login
+    async function loadUser() {
+      try {
+        // Get current user from Supabase
+        const { user: authUser, error: userError } = await getCurrentUser();
+        
+        if (userError || !authUser) {
+          console.warn("No authenticated user");
+          window.location.href = "/login";
+          return;
+        }
+
+        // Get user profile
+        const { profile: userProfile, error: profileError } = await getCurrentProfile();
+        
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("Error loading profile:", profileError);
+        }
+
+        // Create user object for display
+        const displayUser = {
+          id: authUser.id,
+          email: authUser.email,
+          name: userProfile?.display_name || 
+                authUser.user_metadata?.display_name || 
+                authUser.email?.split("@")[0] || 
+                "User"
+        };
+
+        setUser(displayUser);
+        setProfile(userProfile);
+
+        // Update last active date
+        await updateLastActiveDate(authUser.id);
+
+        // Check if this is a first-time user
+        const hasSeenDashboard = localStorage.getItem("feelheal_seen_dashboard");
+        const hasSeenOnboarding = localStorage.getItem("feelheal_seen_onboarding");
+        setIsFirstTime(!!hasSeenOnboarding && !hasSeenDashboard);
+        
+        // Mark that user has seen dashboard
+        localStorage.setItem("feelheal_seen_dashboard", "true");
+      } catch (error) {
+        console.error("Error loading user data:", error);
         window.location.href = "/login";
-        return;
+      } finally {
+        setLoading(false);
       }
-      
-      // Check if this is a first-time user (has onboarding data but no previous dashboard visits)
-      const hasSeenDashboard = localStorage.getItem("feelheal_seen_dashboard");
-      const hasSeenOnboarding = localStorage.getItem("feelheal_seen_onboarding");
-      // First time on dashboard if they've completed onboarding this session and not seen dashboard yet
-      setIsFirstTime(!!hasSeenOnboarding && !hasSeenDashboard);
-      
-      // Mark that user has seen dashboard
-      localStorage.setItem("feelheal_seen_dashboard", "true");
-    } catch (error) {
-      console.error("Error loading user data:", error);
-      // On error, redirect to login
-      window.location.href = "/login";
     }
+
+    loadUser();
   }, []);
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{borderColor: "var(--feelheal-purple)"}}></div>
@@ -130,12 +157,19 @@ export default function Dashboard() {
                 key={idx}
                 className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 cursor-pointer"
                 style={{color: "var(--feelheal-purple)", fontSize: "18px"}}
-                onClick={() => { 
+                onClick={async () => { 
                   if (item.label === "Logout") {
-                    localStorage.removeItem("feelheal_user");
-                    localStorage.removeItem("feelheal_seen_onboarding");
-                    localStorage.removeItem("feelheal_seen_dashboard");
-                    window.location.href = "/";
+                    try {
+                      const { signOut } = await import("@/lib/api/auth");
+                      await signOut();
+                      localStorage.removeItem("feelheal_seen_onboarding");
+                      localStorage.removeItem("feelheal_seen_dashboard");
+                      window.location.href = "/";
+                    } catch (error) {
+                      console.error("Logout error:", error);
+                      // Still redirect even if logout fails
+                      window.location.href = "/";
+                    }
                   } else if (item.target) { 
                     const el = document.querySelector(item.target); 
                     el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }); 

@@ -17,8 +17,18 @@ function EntryCard({ entry, onOpen }) {
   );
 }
 
-export default function Timeline({ entries }) {
+export default function Timeline({ entries, onDelete }) {
   const [open, setOpen] = useState(null);
+
+  const handleDelete = (e, entryId) => {
+    e.stopPropagation();
+    if (confirm("Are you sure you want to delete this entry?")) {
+      onDelete?.(entryId);
+      if (open?.id === entryId) {
+        setOpen(null);
+      }
+    }
+  };
 
   return (
     <div className="mt-6">
@@ -27,7 +37,20 @@ export default function Timeline({ entries }) {
         <p className="text-base text-gray-600">No entries yet. Start with your first reflection above ✍️</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {entries.map(e => <EntryCard key={e.id} entry={e} onOpen={setOpen} />)}
+          {entries.map(e => (
+            <div key={e.id} className="relative">
+              <EntryCard entry={e} onOpen={setOpen} />
+              {onDelete && (
+                <button
+                  onClick={(ev) => handleDelete(ev, e.id)}
+                  className="absolute top-2 right-2 p-1 rounded-full bg-red-100 hover:bg-red-200 text-red-600 text-sm"
+                  title="Delete entry"
+                >
+                  🗑️
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
@@ -36,7 +59,23 @@ export default function Timeline({ entries }) {
           <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6">
             <div className="flex items-center justify-between mb-3">
               <h4 className="text-xl font-semibold" style={{color: "var(--feelheal-purple)"}}>Full Entry</h4>
-              <button onClick={() => setOpen(null)} className="text-xl">✖</button>
+              <div className="flex items-center gap-2">
+                {onDelete && (
+                  <button
+                    onClick={() => {
+                      if (confirm("Are you sure you want to delete this entry?")) {
+                        onDelete(open.id);
+                        setOpen(null);
+                      }
+                    }}
+                    className="p-1 rounded-full bg-red-100 hover:bg-red-200 text-red-600 text-sm"
+                    title="Delete entry"
+                  >
+                    🗑️
+                  </button>
+                )}
+                <button onClick={() => setOpen(null)} className="text-xl">✖</button>
+              </div>
             </div>
             {open.attachment && (
               <img src={open.attachment} alt="attachment" className="rounded-xl mb-3 max-h-60 object-cover w-full" />

@@ -1,27 +1,72 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
 import JournalHeader from "./JournalHeader";
 import PromptBar from "./PromptBar";
 import DiaryEditor from "./DiaryEditor";
 import Timeline from "./Timeline";
 import EncouragementToast from "./EncouragementToast";
 import PinLock from "./PinLock";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getCurrentProfile } from "@/lib/api/profiles";
+import { saveJournalEntry, getJournalEntries, deleteJournalEntry } from "@/lib/api/journal";
 
 export default function JournalPage() {
   const [user, setUser] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [entries, setEntries] = useState([]); // not persisted for now
+  const [entries, setEntries] = useState([]);
   const [selectedMood, setSelectedMood] = useState("calm");
   const [encouragement, setEncouragement] = useState("");
   const [locked, setLocked] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const userData = localStorage.getItem("feelheal_user");
-      if (userData) setUser(JSON.parse(userData));
-    } catch {}
+    async function loadData() {
+      try {
+        // Get current user
+        const { user: authUser, error: userError } = await getCurrentUser();
+        
+        if (userError || !authUser) {
+          window.location.href = "/login";
+          return;
+        }
+
+        // Get profile
+        const { profile } = await getCurrentProfile();
+        
+        const displayUser = {
+          id: authUser.id,
+          email: authUser.email,
+          name: profile?.display_name || 
+                authUser.user_metadata?.display_name || 
+                authUser.email?.split("@")[0] || 
+                "User"
+        };
+        setUser(displayUser);
+
+        // Load journal entries from Supabase
+        const { entries: journalEntries, error: entriesError } = await getJournalEntries();
+        
+        if (!entriesError && journalEntries) {
+          // Convert to format expected by Timeline component
+          const formattedEntries = journalEntries.map(entry => ({
+            id: entry.id,
+            date: entry.date,
+            mood: 'calm', // Mood stored in UI state only, not in DB
+            text: entry.text,
+            attachment: null // Attachments not supported yet
+          }));
+          setEntries(formattedEntries);
+        }
+      } catch (error) {
+        console.error("Error loading journal data:", error);
+        window.location.href = "/login";
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
   }, []);
 
   const theme = useMemo(() => {
@@ -36,23 +81,63 @@ export default function JournalPage() {
     return map[selectedMood] || map.calm;
   }, [selectedMood]);
 
-  const handleSave = (value, attachment) => {
-    const newEntry = {
-      id: Date.now(),
-      date: new Date().toISOString(),
-      mood: selectedMood,
-      text: value,
-      attachment,
-    };
-    setEntries([newEntry, ...entries]);
-    const affirmations = [
-      "Your thoughts are safe here 💌",
-      "You’re growing beautifully 🌿",
-      "Thank you for taking time for yourself 💖",
-      "Small reflections make big changes ✨",
-    ];
-    setEncouragement(affirmations[Math.floor(Math.random() * affirmations.length)]);
-    setTimeout(() => setEncouragement(""), 2500);
+  const handleSave = async (value, attachment) => {
+    if (!value.trim()) return;
+
+    try {
+      // Save to Supabase (encrypted)
+      const { entry: savedEntry, error: saveError } = await saveJournalEntry(
+        value,
+        null,
+        selectedMood
+      );
+
+      if (saveError) {
+        console.error("Error saving journal entry:", saveError);
+        const errorMessage = saveError.message || saveError.code || "Unknown error";
+        console.error("Error details:", errorMessage);
+        setEncouragement(`Couldn't save entry: ${errorMessage}. Please try again.`);
+        setTimeout(() => setEncouragement(""), 3000);
+        return;
+      }
+
+      // Add to local state for immediate display
+      const newEntry = {
+        id: savedEntry.id,
+        date: savedEntry.date,
+        mood: selectedMood,
+        text: value,
+        attachment,
+      };
+      setEntries([newEntry, ...entries]);
+
+      const affirmations = [
+        "Your thoughts are safe here 💌",
+        "You're growing beautifully 🌿",
+        "Thank you for taking time for yourself 💖",
+        "Small reflections make big changes ✨",
+      ];
+      setEncouragement(affirmations[Math.floor(Math.random() * affirmations.length)]);
+      setTimeout(() => setEncouragement(""), 2500);
+    } catch (error) {
+      console.error("Error saving journal entry:", error);
+      setEncouragement("Something went wrong. Please try again.");
+      setTimeout(() => setEncouragement(""), 3000);
+    }
+  };
+
+  const handleDeleteEntry = async (entryId) => {
+    try {
+      const { error } = await deleteJournalEntry(entryId);
+      if (error) {
+        console.error("Error deleting entry:", error);
+        return;
+      }
+      // Remove from local state
+      setEntries(entries.filter(e => e.id !== entryId));
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+    }
   };
 
   return (
@@ -108,12 +193,22 @@ export default function JournalPage() {
                   item.href === "/features/journal" ? "bg-gray-100" : ""
                 }`}
                 style={{color: "var(--feelheal-purple)", fontSize: "18px"}}
-                onClick={() => { 
+                onClick={async () => { 
                   if (item.label === "Logout") {
-                    localStorage.removeItem("feelheal_user");
-                    localStorage.removeItem("feelheal_seen_onboarding");
-                    localStorage.removeItem("feelheal_seen_dashboard");
-                    window.location.href = "/";
+                    try {
+                      const { signOut } = await import("@/lib/api/auth");
+                      await signOut();
+                      // Clear encryption keys from sessionStorage
+                      if (user?.id) {
+                        sessionStorage.removeItem(`feelheal_encryption_key_${user.id}`);
+                      }
+                      localStorage.removeItem("feelheal_seen_onboarding");
+                      localStorage.removeItem("feelheal_seen_dashboard");
+                      window.location.href = "/";
+                    } catch (error) {
+                      console.error("Logout error:", error);
+                      window.location.href = "/";
+                    }
                   } else if (item.href) { 
                     window.location.href = item.href; 
                   }
@@ -127,19 +222,27 @@ export default function JournalPage() {
         </aside>
 
         <main className="flex-1 min-w-0 px-6 py-8 relative z-10">
-          {/* Centered title for consistency */}
-          <div className="text-center mb-6">
-            <div className="text-5xl mb-2">📓</div>
-            <h1 className="text-4xl font-bold" style={{color: "var(--feelheal-purple)"}}>My Digital Diary</h1>
-          </div>
-          {locked ? (
-            <PinLock onUnlock={() => setLocked(false)} />
-          ) : (
-            <div className="w-full">
-              <PromptBar selectedMood={selectedMood} setSelectedMood={setSelectedMood} />
-              <DiaryEditor accent={theme.accent} icon={theme.icon} onSave={handleSave} />
-              <Timeline entries={entries} />
+          {loading ? (
+            <div className="flex items-center justify-center min-h-[400px]">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{borderColor: "var(--feelheal-purple)"}}></div>
             </div>
+          ) : (
+            <>
+              {/* Centered title for consistency */}
+              <div className="text-center mb-6">
+                <div className="text-5xl mb-2">📓</div>
+                <h1 className="text-4xl font-bold" style={{color: "var(--feelheal-purple)"}}>My Digital Diary</h1>
+              </div>
+              {locked ? (
+                <PinLock onUnlock={() => setLocked(false)} />
+              ) : (
+                <div className="w-full">
+                  <PromptBar selectedMood={selectedMood} setSelectedMood={setSelectedMood} />
+                  <DiaryEditor accent={theme.accent} icon={theme.icon} onSave={handleSave} />
+                  <Timeline entries={entries} onDelete={handleDeleteEntry} />
+                </div>
+              )}
+            </>
           )}
         </main>
       </div>

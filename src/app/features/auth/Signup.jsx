@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signUp } from "@/lib/api/auth";
+import { getCurrentProfile } from "@/lib/api/profiles";
 
 const moodOptions = ["Calm", "Energetic", "Sad", "Anxious", "Neutral"];
 
@@ -14,33 +16,69 @@ export default function Signup() {
   const [mood, setMood] = useState("");
   const [agree, setAgree] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setLoading(true);
+    
     if (!name || !email || !password || !confirm) {
       setError("Please fill all required fields");
+      setLoading(false);
       return;
     }
+    
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      setLoading(false);
+      return;
+    }
+    
     if (confirm && password !== confirm) {
       setError("Passwords do not match");
+      setLoading(false);
       return;
     }
+    
     if (!agree) {
       setError("Please accept the terms to continue");
+      setLoading(false);
       return;
     }
+
     try {
-      const user = { name, email, mood };
-      localStorage.setItem("feelheal_user", JSON.stringify(user));
-      // Clear onboarding flags so new users see onboarding after login
+      // Sign up with Supabase
+      const { user, error: signUpError } = await signUp(
+        email.trim().toLowerCase(),
+        password,
+        name.trim()
+      );
+
+      if (signUpError) {
+        setError(signUpError.message || "Sign up failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      if (!user) {
+        setError("Account creation failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      // Profile is automatically created by database trigger
+      // Clear onboarding flags for new users
       localStorage.removeItem("feelheal_seen_onboarding");
       localStorage.removeItem("feelheal_seen_dashboard");
       localStorage.removeItem("feelheal_onboarding_responses");
-      // For now, after signup we take users to login. On first login, onboarding will show.
-      router.push("/login");
-    } catch {
+
+      // Redirect to onboarding for new users
+      window.location.replace("/onboarding");
+    } catch (err) {
+      console.error("Signup error:", err);
       setError("Something went wrong. Please try again.");
+      setLoading(false);
     }
   }
 
@@ -86,8 +124,19 @@ export default function Signup() {
               <input type="checkbox" checked={agree} onChange={(e)=>setAgree(e.target.checked)} className="rounded" />
               I agree to the terms & privacy policy
             </label>
-            {error && <div className="text-sm text-red-600">{error}</div>}
-            <button type="submit" disabled={!agree || !name || !email || !password || !confirm} aria-disabled={!agree || !name || !email || !password || !confirm} className="w-full btn-primary" style={{opacity: (agree && name && email && password && confirm) ? 1 : 0.6, cursor: (agree && name && email && password && confirm) ? 'pointer' : 'not-allowed'}}>Create account</button>
+            {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</div>}
+            <button 
+              type="submit" 
+              disabled={!agree || !name || !email || !password || !confirm || loading} 
+              aria-disabled={!agree || !name || !email || !password || !confirm || loading} 
+              className="w-full btn-primary" 
+              style={{
+                opacity: (agree && name && email && password && confirm && !loading) ? 1 : 0.6, 
+                cursor: (agree && name && email && password && confirm && !loading) ? 'pointer' : 'not-allowed'
+              }}
+            >
+              {loading ? "Creating account..." : "Create account"}
+            </button>
           </form>
 
           <div className="mt-3 text-center text-sm" style={{color: '#ffffff'}}>

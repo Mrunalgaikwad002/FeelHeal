@@ -2,83 +2,78 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { signIn } from "@/lib/api/auth";
+import { getCurrentProfile, updateLastActiveDate } from "@/lib/api/profiles";
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
+    setLoading(true);
+    
     if (!email || !password) {
       setError("Please enter email and password");
+      setLoading(false);
       return;
     }
+
     try {
-      // Normalize email to lowercase for comparison
-      const normalizedEmail = email.trim().toLowerCase();
-      
-      // Get previous user data if it exists
-      const previousRaw = localStorage.getItem("feelheal_user");
-      const previous = previousRaw ? JSON.parse(previousRaw) : null;
-      const previousEmail = previous?.email?.toLowerCase();
-      const isReturningUser = previous && previousEmail === normalizedEmail;
-      
-      // Determine the name for this user
-      let userName;
-      if (isReturningUser && previous && previous.name) {
-        // Returning user: use their stored name
-        userName = previous.name;
-      } else {
-        // New user or email changed: derive name from email
-        const localPart = normalizedEmail.split("@")[0] || "";
-        userName = localPart
-          .split(/[._-]+/)
-          .filter(Boolean)
-          .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-          .join(" ") || "Friend";
+      // Sign in with Supabase
+      const { user, session, error: signInError } = await signIn(
+        email.trim().toLowerCase(),
+        password
+      );
+
+      if (signInError) {
+        setError(signInError.message || "Invalid email or password");
+        setLoading(false);
+        return;
       }
 
-      // If this is a different email (new user), clear ALL user-specific data first
-      if (!isReturningUser) {
-        // Explicitly remove old user data
-        localStorage.removeItem("feelheal_user");
-        // Clear onboarding flags for new users
-        localStorage.removeItem("feelheal_seen_onboarding");
-        localStorage.removeItem("feelheal_seen_dashboard");
-        localStorage.removeItem("feelheal_onboarding_responses");
-        // Clear any other user-specific data that might exist
-        localStorage.removeItem("feelheal_mood_history");
-        localStorage.removeItem("feelheal_journal_entries");
-        localStorage.removeItem("feelheal_goals");
+      if (!user || !session) {
+        setError("Login failed. Please try again.");
+        setLoading(false);
+        return;
       }
 
-      // Always save the current user data with the exact email and name
-      // Use the normalized email for storage
-      const user = { email: normalizedEmail, name: userName };
-      localStorage.setItem("feelheal_user", JSON.stringify(user));
+      // Check if profile exists, create if not
+      const { profile, error: profileError } = await getCurrentProfile();
       
-      // Verify the data was saved correctly
-      const verify = localStorage.getItem("feelheal_user");
-      if (verify) {
-        const savedUser = JSON.parse(verify);
-        console.log("Saved user data:", savedUser);
+      if (profileError && profileError.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        const displayName = user.user_metadata?.display_name || 
+          email.split("@")[0].split(/[._-]+/)
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+            .join(" ") || "User";
+        
+        const { error: createError } = await updateLastActiveDate(user.id);
+        if (createError) {
+          console.error("Error creating profile:", createError);
+        }
+      } else if (!profileError) {
+        // Update last active date
+        await updateLastActiveDate(user.id);
       }
+
+      // Check if user has seen onboarding
+      const hasSeenOnboarding = localStorage.getItem("feelheal_seen_onboarding");
       
-      // Force a hard navigation to ensure dashboard picks up the new user data
-      // Route based on user type
-      if (isReturningUser) {
-        // Returning users always go to dashboard
+      // Redirect based on onboarding status
+      if (hasSeenOnboarding) {
         window.location.replace("/dashboard");
       } else {
-        // New users go to onboarding first
         window.location.replace("/onboarding");
       }
     } catch (error) {
       console.error("Login error:", error);
       setError("Something went wrong. Please try again.");
+      setLoading(false);
     }
   }
 
@@ -103,8 +98,15 @@ export default function Login() {
               <label className="block text-sm font-medium" style={{color: '#ffffff'}}>Password</label>
               <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} className="mt-1 w-full rounded-xl px-3 py-2 placeholder-[#eef]" style={{color: '#ffffff', background: 'rgba(255,255,255,0.14)', border: '1px solid rgba(255,255,255,0.35)'}} placeholder="••••••••"/>
             </div>
-            {error && <div className="text-sm text-red-600">{error}</div>}
-            <button type="submit" className="w-full btn-primary">Login</button>
+            {error && <div className="text-sm text-red-600 bg-red-50 p-2 rounded">{error}</div>}
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full btn-primary"
+              style={{ opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+            >
+              {loading ? "Logging in..." : "Login"}
+            </button>
           </form>
 
           <div className="mt-4 text-center text-sm">

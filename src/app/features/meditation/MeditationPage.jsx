@@ -5,6 +5,10 @@ import MeditationWelcome from "./MeditationWelcome";
 import BreathingSession from "./BreathingSession";
 import SessionSummary from "./SessionSummary";
 import { SESSION_LIBRARY } from "./sessionLibrary";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getCurrentProfile } from "@/lib/api/profiles";
+import { getMeditationStatistics, updateMeditationStatistics } from "@/lib/api/statistics";
+import { getCurrentMoodInsights } from "@/lib/api/mood";
 
 export default function MeditationPage() {
   const [sessionState, setSessionState] = useState("welcome"); // "welcome", "breathing", "summary"
@@ -13,36 +17,46 @@ export default function MeditationPage() {
   const [userMood, setUserMood] = useState(null);
   const [sessionDuration, setSessionDuration] = useState(5); // minutes
   const [activeMode, setActiveMode] = useState("deep_breathe");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load user data
-    try {
-      const userData = localStorage.getItem("feelheal_user");
-      if (userData) {
-        setUser(JSON.parse(userData));
-      } else {
-        // Redirect to login if no user data
+    async function loadData() {
+      try {
+        // Get current user
+        const { user: authUser, error: userError } = await getCurrentUser();
+        
+        if (userError || !authUser) {
+          window.location.href = "/login";
+          return;
+        }
+
+        // Get profile
+        const { profile } = await getCurrentProfile();
+        
+        const displayUser = {
+          id: authUser.id,
+          email: authUser.email,
+          name: profile?.display_name || 
+                authUser.user_metadata?.display_name || 
+                authUser.email?.split("@")[0] || 
+                "User"
+        };
+        setUser(displayUser);
+
+        // Get recent mood from Supabase
+        const { moods } = await getCurrentMoodInsights();
+        if (moods && moods.length > 0) {
+          setUserMood(moods[moods.length - 1].mood_category);
+        }
+      } catch (error) {
+        console.error("Error loading meditation data:", error);
         window.location.href = "/login";
-        return;
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error loading user data:", error);
-      window.location.href = "/login";
-      return;
     }
 
-    // Get recent mood from Mood Garden
-    try {
-      const moodHistory = localStorage.getItem("feelheal_mood_history");
-      if (moodHistory) {
-        const moods = JSON.parse(moodHistory);
-        if (moods.length > 0) {
-          setUserMood(moods[moods.length - 1].mood);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading mood data:", error);
-    }
+    loadData();
   }, []);
 
   const handleStartSession = (mode = "deep_breathe", duration) => {
@@ -52,37 +66,31 @@ export default function MeditationPage() {
     setSessionState("breathing");
   };
 
-  const handleSessionComplete = () => {
+  const handleSessionComplete = async () => {
     setSessionState("summary");
     
-    // Auto-update mood garden with a calm plant
+    // Save meditation statistics to Supabase
     try {
-      const gardenData = localStorage.getItem("feelheal_mood_garden");
-      const garden = gardenData ? JSON.parse(gardenData) : [];
+      const { statistics } = await getMeditationStatistics();
+      const currentStats = statistics || {};
       
-      const newPlant = {
-        id: Date.now(),
-        mood: "calm",
-        emoji: "🍃",
-        name: "Meditation Leaf",
-        color: "#90EE90",
-        date: new Date().toISOString().split('T')[0],
-        timestamp: new Date().toISOString(),
-        position: {
-          x: Math.random() * 80 + 10,
-          y: Math.random() * 60 + 20
-        },
-        size: 1 + Math.random() * 0.5
-      };
-      
-      const updatedGarden = [...garden, newPlant];
-      localStorage.setItem("feelheal_mood_garden", JSON.stringify(updatedGarden));
+      await updateMeditationStatistics({
+        total_sessions_completed: (currentStats.total_sessions_completed || 0) + 1,
+        total_minutes_meditated: (currentStats.total_minutes_meditated || 0) + sessionDuration,
+        last_session_date: new Date().toISOString().split('T')[0],
+        current_streak: currentStats.current_streak || 0 // Can be calculated based on last_session_date
+      });
+
+      // Save calm mood to mood insights
+      const { saveCurrentMoodInsight, anonymizeMood } = await import("@/lib/api/mood");
+      const { moodCategory, emotionalState } = anonymizeMood("calm");
+      await saveCurrentMoodInsight(moodCategory, emotionalState);
     } catch (error) {
-      console.error("Error updating mood garden:", error);
+      console.error("Error saving meditation statistics:", error);
     }
   };
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{borderColor: "var(--feelheal-purple)"}}></div>
@@ -180,12 +188,18 @@ export default function MeditationPage() {
                   item.href === "/features/meditation" ? "bg-gray-100" : ""
                 }`}
                 style={{color: "var(--feelheal-purple)", fontSize: "18px"}}
-                onClick={() => { 
+                onClick={async () => { 
                   if (item.label === "Logout") {
-                    localStorage.removeItem("feelheal_user");
-                    localStorage.removeItem("feelheal_seen_onboarding");
-                    localStorage.removeItem("feelheal_seen_dashboard");
-                    window.location.href = "/";
+                    try {
+                      const { signOut } = await import("@/lib/api/auth");
+                      await signOut();
+                      localStorage.removeItem("feelheal_seen_onboarding");
+                      localStorage.removeItem("feelheal_seen_dashboard");
+                      window.location.href = "/";
+                    } catch (error) {
+                      console.error("Logout error:", error);
+                      window.location.href = "/";
+                    }
                   } else if (item.href) { 
                     window.location.href = item.href; 
                   }

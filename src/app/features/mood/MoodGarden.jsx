@@ -7,6 +7,9 @@ import MoodOptions from "./MoodOptions";
 import GardenDisplay from "./GardenDisplay";
 import GardenStats from "./GardenStats";
 import FeedbackToast from "./FeedbackToast";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getCurrentProfile } from "@/lib/api/profiles";
+import { saveCurrentMoodInsight, getCurrentMoodInsights, anonymizeMood } from "@/lib/api/mood";
 
 const MOOD_PLANTS = {
   happy: { emoji: "🌻", name: "Sunflower", color: "#FFD700", message: "Your happiness bloomed a sunflower 🌻" },
@@ -36,25 +39,63 @@ export default function MoodGarden() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   useEffect(() => {
-    // Load user data
-    try {
-      const userData = localStorage.getItem("feelheal_user");
-      if (userData) {
-        setUser(JSON.parse(userData));
+    async function loadData() {
+      try {
+        // Get current user
+        const { user: authUser, error: userError } = await getCurrentUser();
+        
+        if (userError || !authUser) {
+          window.location.href = "/login";
+          return;
+        }
+
+        // Get profile
+        const { profile } = await getCurrentProfile();
+        
+        const displayUser = {
+          id: authUser.id,
+          email: authUser.email,
+          name: profile?.display_name || 
+                authUser.user_metadata?.display_name || 
+                authUser.email?.split("@")[0] || 
+                "User"
+        };
+        setUser(displayUser);
+
+        // Load mood insights from Supabase
+        const { moods, error: moodsError } = await getCurrentMoodInsights();
+        
+        if (!moodsError && moods) {
+          // Convert mood insights to garden plants for display
+          const gardenPlants = moods.map((mood, index) => ({
+            id: mood.id,
+            mood: mood.mood_category,
+            emoji: MOOD_PLANTS[mood.mood_category]?.emoji || "🌸",
+            name: MOOD_PLANTS[mood.mood_category]?.name || "Plant",
+            color: MOOD_PLANTS[mood.mood_category]?.color || "#FFB6C1",
+            date: mood.date,
+            timestamp: mood.created_at,
+            position: {
+              x: (index * 15) % 80 + 10,
+              y: (index * 12) % 60 + 20
+            },
+            size: 1 + Math.random() * 0.5
+          }));
+          setGarden(gardenPlants);
+        }
+      } catch (error) {
+        console.error("Error loading mood data:", error);
+        window.location.href = "/login";
       }
-    } catch (error) {
-      console.error("Error loading user data:", error);
     }
 
-    // Load garden from localStorage (disabled for testing)
-    // const savedGarden = localStorage.getItem("feelheal_mood_garden");
-    // if (savedGarden) {
-    //   setGarden(JSON.parse(savedGarden));
-    // }
-    
+    loadData();
+  }, []);
+
+  useEffect(() => {
     // Calculate background based on recent moods
     updateBackgroundGradient();
-  }, []);
+  }, [garden]);
 
   const updateBackgroundGradient = () => {
     const recentMoods = garden.slice(-7); // Last 7 entries
@@ -81,54 +122,75 @@ export default function MoodGarden() {
     setBackgroundGradient(gradients[dominantMood] || gradients.happy);
   };
 
-  const handleMoodSelect = (mood) => {
+  const handleMoodSelect = async (mood) => {
     const plant = MOOD_PLANTS[mood.value];
     
-    // Special positioning for rain (cloud) - always at the top
-    let position;
-    if (mood.value === 'sad') {
-      position = {
-        x: Math.random() * 80 + 10, // 10% to 90% of container width
-        y: 5 // Always at the top (5% from top)
+    // Anonymize mood before saving
+    const { moodCategory, emotionalState } = anonymizeMood(mood.value);
+    
+    try {
+      // Save mood insight to Supabase (anonymized)
+      const { mood: savedMood, error: saveError } = await saveCurrentMoodInsight(
+        moodCategory,
+        emotionalState
+      );
+
+      if (saveError) {
+        console.error("Error saving mood:", saveError);
+        setShowMessage("Couldn't save mood. Please try again.");
+        setTimeout(() => setShowMessage(""), 3000);
+        return;
+      }
+
+      // Special positioning for rain (cloud) - always at the top
+      let position;
+      if (mood.value === 'sad') {
+        position = {
+          x: Math.random() * 80 + 10,
+          y: 5
+        };
+      } else {
+        position = {
+          x: Math.random() * 80 + 10,
+          y: Math.random() * 60 + 20
+        };
+      }
+      
+      const newPlant = {
+        id: savedMood?.id || Date.now(),
+        mood: mood.value,
+        emoji: plant.emoji,
+        name: plant.name,
+        color: plant.color,
+        date: new Date().toISOString().split('T')[0],
+        timestamp: new Date().toISOString(),
+        position: position,
+        size: 1 + Math.random() * 0.5
       };
-    } else {
-      position = {
-        x: Math.random() * 80 + 10, // 10% to 90% of container width
-        y: Math.random() * 60 + 20  // 20% to 80% of container height
-      };
+
+      const updatedGarden = [...garden, newPlant];
+      setGarden(updatedGarden);
+
+      // Show positive feedback
+      setShowMessage(plant.message);
+      setShowConfetti(true);
+    
+      // Play gentle sound
+      playPlantSound();
+
+      // Update background
+      updateBackgroundGradient();
+
+      // Hide message after 3 seconds
+      setTimeout(() => {
+        setShowMessage("");
+        setShowConfetti(false);
+      }, 3000);
+    } catch (error) {
+      console.error("Error in handleMoodSelect:", error);
+      setShowMessage("Something went wrong. Please try again.");
+      setTimeout(() => setShowMessage(""), 3000);
     }
-    
-    const newPlant = {
-      id: Date.now(),
-      mood: mood.value,
-      emoji: plant.emoji,
-      name: plant.name,
-      color: plant.color,
-      date: new Date().toISOString().split('T')[0],
-      timestamp: new Date().toISOString(),
-      position: position,
-      size: 1 + Math.random() * 0.5 // Random size variation
-    };
-
-    const updatedGarden = [...garden, newPlant];
-    setGarden(updatedGarden);
-    // localStorage.setItem("feelheal_mood_garden", JSON.stringify(updatedGarden)); // Disabled for testing
-
-    // Show positive feedback
-    setShowMessage(plant.message);
-    setShowConfetti(true);
-    
-    // Play gentle sound
-    playPlantSound();
-
-    // Update background
-    updateBackgroundGradient();
-
-    // Hide message after 3 seconds
-    setTimeout(() => {
-      setShowMessage("");
-      setShowConfetti(false);
-    }, 3000);
   };
 
   const playPlantSound = () => {
@@ -228,12 +290,18 @@ export default function MoodGarden() {
                   item.href === "/features/mood" ? "bg-gray-100" : ""
                 }`}
                 style={{color: "var(--feelheal-purple)", fontSize: "18px"}}
-                onClick={() => { 
+                onClick={async () => { 
                   if (item.label === "Logout") {
-                    localStorage.removeItem("feelheal_user");
-                    localStorage.removeItem("feelheal_seen_onboarding");
-                    localStorage.removeItem("feelheal_seen_dashboard");
-                    window.location.href = "/";
+                    try {
+                      const { signOut } = await import("@/lib/api/auth");
+                      await signOut();
+                      localStorage.removeItem("feelheal_seen_onboarding");
+                      localStorage.removeItem("feelheal_seen_dashboard");
+                      window.location.href = "/";
+                    } catch (error) {
+                      console.error("Logout error:", error);
+                      window.location.href = "/";
+                    }
                   } else if (item.href) { 
                     window.location.href = item.href; 
                   }

@@ -11,6 +11,9 @@ import DailyCheckIn from "./DailyCheckIn";
 import MotivationalMessage from "./MotivationalMessage";
 import ShootingStar from "./ShootingStar";
 import ProgressCelebration from "./ProgressCelebration";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getCurrentProfile } from "@/lib/api/profiles";
+import { getGoalStatistics, updateGoalStatistics } from "@/lib/api/statistics";
 
 export default function GoalUniverse() {
   const [goals, setGoals] = useState([]);
@@ -26,44 +29,64 @@ export default function GoalUniverse() {
   const [celebratingGoal, setCelebratingGoal] = useState(null);
 
   useEffect(() => {
-    // Load user data
-    try {
-      const userData = localStorage.getItem("feelheal_user");
-      if (userData) {
-        setUser(JSON.parse(userData));
+    async function loadData() {
+      try {
+        // Get current user
+        const { user: authUser, error: userError } = await getCurrentUser();
+        
+        if (userError || !authUser) {
+          window.location.href = "/login";
+          return;
+        }
+
+        // Get profile
+        const { profile } = await getCurrentProfile();
+        
+        const displayUser = {
+          id: authUser.id,
+          email: authUser.email,
+          name: profile?.display_name || 
+                authUser.user_metadata?.display_name || 
+                authUser.email?.split("@")[0] || 
+                "User"
+        };
+        setUser(displayUser);
+
+        // Load goals from localStorage (for UI - not stored in backend per privacy)
+        try {
+          const savedGoals = localStorage.getItem("feelheal_goals");
+          if (savedGoals) {
+            const loadedGoals = JSON.parse(savedGoals).map(goal => ({
+              ...goal,
+              dailyCompletions: goal.dailyCompletions || []
+            }));
+            setGoals(loadedGoals);
+            
+            // Check if there are goals that need daily check-in
+            const today = new Date().toISOString().split('T')[0];
+            const activeGoals = loadedGoals.filter(g => !g.completed);
+            const hasUncheckedGoals = activeGoals.some(goal => {
+              const completions = goal.dailyCompletions || [];
+              return !completions.some(c => c.date === today);
+            });
+            
+            if (hasUncheckedGoals && activeGoals.length > 0) {
+              setShowCheckIn(true);
+            }
+          }
+        } catch (error) {
+          console.error("Error loading goals:", error);
+        }
+      } catch (error) {
+        console.error("Error loading user data:", error);
+        window.location.href = "/login";
       }
-    } catch (error) {
-      console.error("Error loading user data:", error);
     }
 
-    // Load goals from localStorage
-    try {
-      const savedGoals = localStorage.getItem("feelheal_goals");
-      if (savedGoals) {
-        const loadedGoals = JSON.parse(savedGoals).map(goal => ({
-          ...goal,
-          dailyCompletions: goal.dailyCompletions || [] // Ensure dailyCompletions exists
-        }));
-        setGoals(loadedGoals);
-        
-        // Check if there are goals that need daily check-in
-        const today = new Date().toISOString().split('T')[0];
-        const activeGoals = loadedGoals.filter(g => !g.completed);
-        const hasUncheckedGoals = activeGoals.some(goal => {
-          const completions = goal.dailyCompletions || [];
-          return !completions.some(c => c.date === today);
-        });
-        
-        if (hasUncheckedGoals && activeGoals.length > 0) {
-          setShowCheckIn(true);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading goals:", error);
-    }
+    loadData();
   }, []);
 
-  const handleAddGoal = (goalData) => {
+  const handleAddGoal = async (goalData) => {
     const newGoal = {
       id: Date.now(),
       title: goalData.title,
@@ -72,16 +95,29 @@ export default function GoalUniverse() {
       completed: false,
       createdAt: new Date().toISOString(),
       position: {
-        x: Math.random() * 80 + 10, // 10% to 90% of container width
-        y: Math.random() * 60 + 20  // 20% to 80% of container height
+        x: Math.random() * 80 + 10,
+        y: Math.random() * 60 + 20
       },
-      brightness: 0.3, // Start dim, increases with progress
-      dailyCompletions: [] // Track daily completions
+      brightness: 0.3,
+      dailyCompletions: []
     };
 
     const updatedGoals = [...goals, newGoal];
     setGoals(updatedGoals);
     localStorage.setItem("feelheal_goals", JSON.stringify(updatedGoals));
+    
+    // Update statistics in Supabase (only counts, not goal details)
+    try {
+      const { statistics } = await getGoalStatistics();
+      const currentStats = statistics || {};
+      await updateGoalStatistics({
+        total_goals_created: (currentStats.total_goals_created || 0) + 1,
+        current_active_goals: updatedGoals.filter(g => !g.completed).length,
+        last_goal_activity_date: new Date().toISOString().split('T')[0]
+      });
+    } catch (error) {
+      console.error("Error updating goal statistics:", error);
+    }
     
     setShowMessage("A new star appeared in your universe 🌠");
     setTimeout(() => setShowMessage(""), 3000);
@@ -94,7 +130,7 @@ export default function GoalUniverse() {
     }, 500);
   };
 
-  const handleUpdateProgress = (goalId, newProgress) => {
+  const handleUpdateProgress = async (goalId, newProgress) => {
     const updatedGoals = goals.map(goal => {
       if (goal.id === goalId) {
         const wasCompleted = goal.completed;
@@ -132,9 +168,22 @@ export default function GoalUniverse() {
 
     setGoals(updatedGoals);
     localStorage.setItem("feelheal_goals", JSON.stringify(updatedGoals));
+
+    // Update statistics in Supabase
+    try {
+      const completedCount = updatedGoals.filter(g => g.completed).length;
+      const activeCount = updatedGoals.filter(g => !g.completed).length;
+      await updateGoalStatistics({
+        total_goals_completed: completedCount,
+        current_active_goals: activeCount,
+        last_goal_activity_date: new Date().toISOString().split('T')[0]
+      });
+    } catch (error) {
+      console.error("Error updating goal statistics:", error);
+    }
   };
 
-  const handleDailyCheckIn = (answers) => {
+  const handleDailyCheckIn = async (answers) => {
     const today = new Date().toISOString().split('T')[0];
     const updatedGoals = goals.map(goal => {
       if (answers.hasOwnProperty(goal.id)) {
@@ -165,6 +214,20 @@ export default function GoalUniverse() {
 
     setGoals(updatedGoals);
     localStorage.setItem("feelheal_goals", JSON.stringify(updatedGoals));
+
+    // Update statistics in Supabase
+    try {
+      const completedCount = updatedGoals.filter(g => g.completed).length;
+      const activeCount = updatedGoals.filter(g => !g.completed).length;
+      await updateGoalStatistics({
+        total_goals_completed: completedCount,
+        current_active_goals: activeCount,
+        last_goal_activity_date: today
+      });
+    } catch (error) {
+      console.error("Error updating goal statistics:", error);
+    }
+
     setShowCheckIn(false);
     setShowMessage("Your progress has been recorded! ✨");
     setTimeout(() => setShowMessage(""), 3000);
@@ -174,11 +237,23 @@ export default function GoalUniverse() {
     setShootingStarTrigger(prev => prev + 1);
   };
 
-  const handleDeleteGoal = (goalId) => {
+  const handleDeleteGoal = async (goalId) => {
     const updatedGoals = goals.filter(goal => goal.id !== goalId);
     setGoals(updatedGoals);
     localStorage.setItem("feelheal_goals", JSON.stringify(updatedGoals));
     setSelectedGoal(null);
+
+    // Update statistics in Supabase
+    try {
+      const completedCount = updatedGoals.filter(g => g.completed).length;
+      const activeCount = updatedGoals.filter(g => !g.completed).length;
+      await updateGoalStatistics({
+        total_goals_completed: completedCount,
+        current_active_goals: activeCount
+      });
+    } catch (error) {
+      console.error("Error updating goal statistics:", error);
+    }
   };
 
   const playStarSound = () => {
@@ -288,12 +363,18 @@ export default function GoalUniverse() {
                   item.href === "/features/goals" ? "bg-white/20" : ""
                 }`}
                 style={{color: "#ffffff", fontSize: "18px"}}
-                onClick={() => { 
+                onClick={async () => { 
                   if (item.label === "Logout") {
-                    localStorage.removeItem("feelheal_user");
-                    localStorage.removeItem("feelheal_seen_onboarding");
-                    localStorage.removeItem("feelheal_seen_dashboard");
-                    window.location.href = "/";
+                    try {
+                      const { signOut } = await import("@/lib/api/auth");
+                      await signOut();
+                      localStorage.removeItem("feelheal_seen_onboarding");
+                      localStorage.removeItem("feelheal_seen_dashboard");
+                      window.location.href = "/";
+                    } catch (error) {
+                      console.error("Logout error:", error);
+                      window.location.href = "/";
+                    }
                   } else if (item.href) { 
                     window.location.href = item.href; 
                   }
