@@ -68,7 +68,11 @@ export default function Signup() {
       }
 
       // Profile is automatically created by database trigger
-      // Clear onboarding flags for new users
+      // Ensure onboarding_completed is false for new users
+      const { upsertProfile } = await import("@/lib/api/profiles");
+      await upsertProfile(user.id, name.trim(), false);
+
+      // Clear any old localStorage flags
       localStorage.removeItem("feelheal_seen_onboarding");
       localStorage.removeItem("feelheal_seen_dashboard");
       localStorage.removeItem("feelheal_onboarding_responses");

@@ -29,21 +29,71 @@ export default function Dashboard() {
           return;
         }
 
-        // Get user profile
+        console.log("Current authenticated user:", {
+          id: authUser.id,
+          email: authUser.email,
+          metadata: authUser.user_metadata
+        });
+
+        // Get user profile - force fresh fetch
         const { profile: userProfile, error: profileError } = await getCurrentProfile();
         
+        console.log("Profile data:", {
+          profile: userProfile,
+          error: profileError
+        });
+
         if (profileError && profileError.code !== 'PGRST116') {
           console.error("Error loading profile:", profileError);
         }
+
+        // Determine display name - prioritize email prefix (what user logged in with)
+        // This ensures consistency across the app
+        let displayName = null;
+        
+        // First, try to get from email prefix (what they logged in with)
+        if (authUser.email) {
+          const emailPrefix = authUser.email.split("@")[0];
+          displayName = emailPrefix
+            .split(/[._-]+/)
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+            .join(" ");
+        }
+        
+        // Fallback to profile display_name if email parsing fails
+        if (!displayName) {
+          displayName = userProfile?.display_name;
+        }
+        
+        // Fallback to user metadata
+        if (!displayName) {
+          displayName = authUser.user_metadata?.display_name;
+        }
+        
+        // Final fallback
+        if (!displayName) {
+          displayName = "User";
+        }
+
+        // Update profile if display_name doesn't match email prefix
+        // This ensures the profile always reflects the login email
+        if (authUser.email && userProfile?.display_name !== displayName) {
+          const { upsertProfile } = await import("@/lib/api/profiles");
+          await upsertProfile(authUser.id, displayName);
+          // Reload profile after update
+          const { profile: updatedProfile } = await getCurrentProfile();
+          if (updatedProfile) {
+            setProfile(updatedProfile);
+          }
+        }
+
+        console.log("Final display name:", displayName);
 
         // Create user object for display
         const displayUser = {
           id: authUser.id,
           email: authUser.email,
-          name: userProfile?.display_name || 
-                authUser.user_metadata?.display_name || 
-                authUser.email?.split("@")[0] || 
-                "User"
+          name: displayName
         };
 
         setUser(displayUser);
@@ -52,13 +102,19 @@ export default function Dashboard() {
         // Update last active date
         await updateLastActiveDate(authUser.id);
 
-        // Check if this is a first-time user
+        // Check if this is a first-time user (first time seeing dashboard after onboarding)
         const hasSeenDashboard = localStorage.getItem("feelheal_seen_dashboard");
-        const hasSeenOnboarding = localStorage.getItem("feelheal_seen_onboarding");
-        setIsFirstTime(!!hasSeenOnboarding && !hasSeenDashboard);
+        const onboardingCompleted = userProfile?.onboarding_completed ?? false;
+        setIsFirstTime(onboardingCompleted && !hasSeenDashboard);
         
         // Mark that user has seen dashboard
         localStorage.setItem("feelheal_seen_dashboard", "true");
+        
+        // If onboarding not completed, redirect to onboarding
+        if (!onboardingCompleted) {
+          window.location.href = "/onboarding";
+          return;
+        }
       } catch (error) {
         console.error("Error loading user data:", error);
         window.location.href = "/login";

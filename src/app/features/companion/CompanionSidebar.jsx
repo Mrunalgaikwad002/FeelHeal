@@ -1,0 +1,57 @@
+// Sidebar navigation for companion page
+
+const STORAGE_KEY = "feelheal_chat_history";
+
+export default function CompanionSidebar({ isSidebarOpen }) {
+  const navItems = [
+    { icon: "🏠", label: "Dashboard", href: "/dashboard" },
+    { icon: "🌦️", label: "Mood Garden", href: "/features/mood" },
+    { icon: "✍️", label: "Journal", href: "/features/journal" },
+    { icon: "🌌", label: "Goal Universe", href: "/features/goals" },
+    { icon: "🧘‍♀️", label: "Meditation", href: "/features/meditation" },
+    { icon: "🤖", label: "MyBuddy", href: "/features/companion" },
+    { icon: "🕹️", label: "Games", href: "/games" },
+    { icon: "😂", label: "Humor", href: "/humor" },
+    { icon: "⚙️", label: "Settings", href: "/features/settings" },
+    { icon: "🔓", label: "Logout" }
+  ];
+
+  const handleNavClick = async (item) => {
+    if (item.label === "Logout") {
+      try {
+        const { signOut } = await import("@/lib/api/auth");
+        await signOut();
+        localStorage.removeItem("feelheal_seen_onboarding");
+        localStorage.removeItem("feelheal_seen_dashboard");
+        localStorage.removeItem(STORAGE_KEY);
+        window.location.href = "/";
+      } catch (error) {
+        console.error("Logout error:", error);
+        window.location.href = "/";
+      }
+    } else if (item.href) {
+      window.location.href = item.href;
+    }
+  };
+
+  return (
+    <aside
+      className={`${isSidebarOpen ? "w-64" : "w-16"} transition-all duration-300 bg-white/70 backdrop-blur-sm border-r border-white/20 h-[calc(100vh-64px)] sticky top-16 self-start hidden md:block flex-shrink-0`}
+    >
+      <nav className="p-4 space-y-1.5 text-lg">
+        {navItems.map((item, idx) => (
+          <div
+            key={idx}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 cursor-pointer ${item.href === "/features/companion" ? "bg-gray-100" : ""}`}
+            style={{color: "var(--feelheal-purple)", fontSize: "18px"}}
+            onClick={() => handleNavClick(item)}
+          >
+            <span className="text-xl w-6 text-center">{item.icon}</span>
+            {isSidebarOpen && <span className="truncate font-medium">{item.label}</span>}
+          </div>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+

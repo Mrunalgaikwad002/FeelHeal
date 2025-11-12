@@ -51,13 +51,34 @@ export default function SettingsPage() {
         // Get profile
         const { profile } = await getCurrentProfile();
         
+        // Derive display name from email (what user logged in with)
+        // This ensures consistency - name matches login email
+        let displayName = null;
+        if (authUser.email) {
+          const emailPrefix = authUser.email.split("@")[0];
+          displayName = emailPrefix
+            .split(/[._-]+/)
+            .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+            .join(" ");
+        }
+        
+        // Fallback to profile or metadata
+        if (!displayName) {
+          displayName = profile?.display_name || 
+                       authUser.user_metadata?.display_name || 
+                       "User";
+        }
+        
+        // Update profile if it doesn't match email prefix
+        if (authUser.email && profile?.display_name !== displayName) {
+          const { upsertProfile } = await import("@/lib/api/profiles");
+          await upsertProfile(authUser.id, displayName);
+        }
+        
         const displayUser = {
           id: authUser.id,
           email: authUser.email,
-          name: profile?.display_name || 
-                authUser.user_metadata?.display_name || 
-                authUser.email?.split("@")[0] || 
-                "User"
+          name: displayName
         };
         setUser(displayUser);
 

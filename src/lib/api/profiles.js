@@ -62,6 +62,26 @@ export async function updateCurrentProfile(updates) {
 }
 
 /**
+ * Create profile if it doesn't exist
+ * @param {string} userId - User ID
+ * @param {string} displayName - Display name
+ * @returns {Promise<{profile: object, error: object}>}
+ */
+export async function createProfile(userId, displayName) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .insert({
+      id: userId,
+      display_name: displayName,
+      last_active_date: new Date().toISOString().split('T')[0]
+    })
+    .select()
+    .single()
+
+  return { profile: data, error }
+}
+
+/**
  * Update last active date
  * @param {string} userId - User ID
  * @returns {Promise<{error: object}>}
@@ -71,6 +91,54 @@ export async function updateLastActiveDate(userId) {
     .from('profiles')
     .update({
       last_active_date: new Date().toISOString().split('T')[0]
+    })
+    .eq('id', userId)
+
+  return { error }
+}
+
+/**
+ * Create or update profile (upsert)
+ * @param {string} userId - User ID
+ * @param {string} displayName - Display name
+ * @param {boolean} onboardingCompleted - Whether onboarding is completed
+ * @returns {Promise<{profile: object, error: object}>}
+ */
+export async function upsertProfile(userId, displayName, onboardingCompleted = null) {
+  const updateData = {
+    id: userId,
+    display_name: displayName,
+    last_active_date: new Date().toISOString().split('T')[0],
+    updated_at: new Date().toISOString()
+  }
+  
+  // Only update onboarding_completed if explicitly provided
+  if (onboardingCompleted !== null) {
+    updateData.onboarding_completed = onboardingCompleted
+  }
+  
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert(updateData, {
+      onConflict: 'id'
+    })
+    .select()
+    .single()
+
+  return { profile: data, error }
+}
+
+/**
+ * Mark onboarding as completed
+ * @param {string} userId - User ID
+ * @returns {Promise<{error: object}>}
+ */
+export async function completeOnboarding(userId) {
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      onboarding_completed: true,
+      updated_at: new Date().toISOString()
     })
     .eq('id', userId)
 

@@ -3,25 +3,68 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import OnboardingQuestions from "./OnboardingQuestions";
+import { getCurrentUser } from "@/lib/api/auth";
+import { getCurrentProfile } from "@/lib/api/profiles";
 
 export default function OnboardingWelcome() {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("feelheal_user");
-      if (raw) {
-        const u = JSON.parse(raw);
-        setName(u?.name || u?.email?.split("@")[0] || "Friend");
+    async function checkOnboardingStatus() {
+      try {
+        // Check if user is authenticated
+        const { user, error: userError } = await getCurrentUser();
+        
+        if (userError || !user) {
+          // Not authenticated, redirect to login
+          window.location.href = "/login";
+          return;
+        }
+
+        // Get profile to check onboarding status
+        const { profile, error: profileError } = await getCurrentProfile();
+        
+        // If onboarding already completed, redirect to dashboard
+        if (profile?.onboarding_completed) {
+          window.location.href = "/dashboard";
+          return;
+        }
+
+        // Get name from profile or email
+        if (profile?.display_name) {
+          setName(profile.display_name);
+        } else if (user.user_metadata?.display_name) {
+          setName(user.user_metadata.display_name);
+        } else if (user.email) {
+          setName(user.email.split("@")[0]);
+        } else {
+          setName("Friend");
+        }
+      } catch (error) {
+        console.error("Error checking onboarding status:", error);
+        window.location.href = "/login";
+      } finally {
+        setLoading(false);
       }
-    } catch {}
+    }
+
+    checkOnboardingStatus();
   }, []);
 
   const [showQuestions, setShowQuestions] = useState(false);
 
   function proceed() {
     setShowQuestions(true);
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{borderColor: "var(--feelheal-purple)"}}></div>
+      </div>
+    );
   }
 
   if (showQuestions) {

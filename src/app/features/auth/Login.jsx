@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signIn } from "@/lib/api/auth";
-import { getCurrentProfile, updateLastActiveDate } from "@/lib/api/profiles";
+import { getCurrentProfile, updateLastActiveDate, upsertProfile } from "@/lib/api/profiles";
 
 export default function Login() {
   const router = useRouter();
@@ -42,32 +42,31 @@ export default function Login() {
         return;
       }
 
-      // Check if profile exists, create if not
-      const { profile, error: profileError } = await getCurrentProfile();
+      // Derive display name from email (this is what user logged in with)
+      const emailPrefix = email.split("@")[0];
+      const displayName = emailPrefix
+        .split(/[._-]+/)
+        .map(s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase())
+        .join(" ") || "User";
       
-      if (profileError && profileError.code === 'PGRST116') {
-        // Profile doesn't exist, create it
-        const displayName = user.user_metadata?.display_name || 
-          email.split("@")[0].split(/[._-]+/)
-            .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-            .join(" ") || "User";
-        
-        const { error: createError } = await updateLastActiveDate(user.id);
-        if (createError) {
-          console.error("Error creating profile:", createError);
-        }
-      } else if (!profileError) {
-        // Update last active date
-        await updateLastActiveDate(user.id);
+      // Get current profile to check onboarding status
+      const { profile: currentProfile } = await getCurrentProfile();
+      
+      // Always update profile with the display name from email
+      // This ensures the name matches what they logged in with
+      // Preserve onboarding_completed status
+      const onboardingCompleted = currentProfile?.onboarding_completed ?? false;
+      const { error: profileUpdateError } = await upsertProfile(user.id, displayName, onboardingCompleted);
+      if (profileUpdateError) {
+        console.error("Error updating profile:", profileUpdateError);
       }
 
-      // Check if user has seen onboarding
-      const hasSeenOnboarding = localStorage.getItem("feelheal_seen_onboarding");
-      
-      // Redirect based on onboarding status
-      if (hasSeenOnboarding) {
+      // Redirect based on onboarding completion status from database
+      if (onboardingCompleted) {
+        // Existing user - go to dashboard
         window.location.replace("/dashboard");
       } else {
+        // New user - go to onboarding
         window.location.replace("/onboarding");
       }
     } catch (error) {

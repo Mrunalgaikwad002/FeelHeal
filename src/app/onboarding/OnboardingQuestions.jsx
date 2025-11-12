@@ -150,16 +150,30 @@ export default function OnboardingQuestions() {
     });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Save responses and show thank you page
+      // Save responses
       const finalResponses = {
         ...responses,
         goals: selectedGoals
       };
       localStorage.setItem("feelheal_onboarding_responses", JSON.stringify(finalResponses));
+      
+      // Mark onboarding as completed in database
+      try {
+        const { getCurrentUser } = await import("@/lib/api/auth");
+        const { completeOnboarding } = await import("@/lib/api/profiles");
+        const { user } = await getCurrentUser();
+        if (user) {
+          await completeOnboarding(user.id);
+        }
+      } catch (error) {
+        console.error("Error marking onboarding as completed:", error);
+      }
+      
+      // Also set localStorage for backward compatibility
       localStorage.setItem("feelheal_seen_onboarding", "true");
       setShowThankYou(true);
       
