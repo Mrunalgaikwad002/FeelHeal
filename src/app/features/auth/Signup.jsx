@@ -56,7 +56,13 @@ export default function Signup() {
       );
 
       if (signUpError) {
-        setError(signUpError.message || "Sign up failed. Please try again.");
+        if (signUpError.status === 429 || signUpError.message?.toLowerCase().includes("too many")) {
+          setError("Too many signup attempts. Please wait a minute before trying again.");
+        } else if (signUpError.message?.toLowerCase().includes("email provider disabled")) {
+          setError("Email signups are currently disabled. Please contact support.");
+        } else {
+          setError(signUpError.message || "Sign up failed. Please try again.");
+        }
         setLoading(false);
         return;
       }
@@ -141,9 +147,7 @@ export default function Signup() {
             >
               {loading ? "Creating account..." : "Create account"}
             </button>
-            <p className="text-sm text-center mt-2" style={{color: 'var(--feelheal-purple)'}}>
-              After registering, please confirm your signup by opening the verification email we send you.
-            </p>
+            
           </form>
 
           <div className="mt-3 text-center text-sm" style={{color: 'var(--feelheal-purple)'}}>

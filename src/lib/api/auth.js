@@ -53,8 +53,17 @@ export async function signOut() {
  * @returns {Promise<{user: object, error: object}>}
  */
 export async function getCurrentUser() {
-  const { data: { user }, error } = await supabase.auth.getUser()
-  return { user, error }
+  const { data, error } = await supabase.auth.getUser()
+
+  if (error) {
+    if (error.message?.includes('Invalid Refresh Token')) {
+      console.warn('Supabase refresh token invalid or expired. Clearing local session.')
+      await supabase.auth.signOut()
+    }
+    return { user: null, error }
+  }
+
+  return { user: data.user, error: null }
 }
 
 /**
@@ -62,8 +71,17 @@ export async function getCurrentUser() {
  * @returns {Promise<{session: object, error: object}>}
  */
 export async function getCurrentSession() {
-  const { data: { session }, error } = await supabase.auth.getSession()
-  return { session, error }
+  const { data, error } = await supabase.auth.getSession()
+
+  if (error) {
+    if (error.message?.includes('Invalid Refresh Token')) {
+      console.warn('Supabase refresh token invalid or expired. Clearing local session.')
+      await supabase.auth.signOut()
+    }
+    return { session: null, error }
+  }
+
+  return { session: data.session, error: null }
 }
 
 /**
