@@ -6,7 +6,7 @@ export default function HeaderNav() {
           <div className="h-8 w-8 rounded-full feelheal-pill" />
           <span className="text-xl font-semibold" style={{color: "var(--feelheal-purple)"}}>FeelHeal 🌸</span>
         </a>
-        <nav className="hidden sm:flex items-center gap-5 text-sm">
+        <nav className="hidden sm:flex items-center gap-5 text-base font-medium">
           <a className="hover:opacity-90" style={{color: "var(--feelheal-purple)"}} href="#top">Home</a>
           <a className="hover:opacity-90" style={{color: "var(--feelheal-purple)"}} href="#about">About</a>
           <a className="hover:opacity-90" style={{color: "var(--feelheal-purple)"}} href="#features">Features</a>

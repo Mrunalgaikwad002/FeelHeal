@@ -37,18 +37,32 @@ export default function JournalSection({ isFirstTime }) {
   return (
     <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-6 border border-white/20 shadow-lg h-full flex flex-col card-hover">
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
+        <div 
+          className="flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => {
+            const el = document.querySelector("#card-journal");
+            if (el) {
+              const headerOffset = 80;
+              const elementPosition = el.getBoundingClientRect().top;
+              const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+              });
+            }
+          }}
+        >
           <span className="text-3xl mr-3">✍️</span>
           <h3 className="text-2xl font-semibold" style={{color: "var(--feelheal-purple)"}}>
             Journal
           </h3>
         </div>
         <button
-          onClick={() => setShowNewEntry(!showNewEntry)}
+          onClick={() => window.location.href = "/features/journal"}
           className="px-4 py-2 text-base font-medium rounded-full bg-purple-100 hover:bg-purple-200 transition-colors"
           style={{color: "var(--feelheal-purple)"}}
         >
-          {showNewEntry ? "Cancel" : "New"}
+          New
         </button>
       </div>
 
@@ -62,7 +76,7 @@ export default function JournalSection({ isFirstTime }) {
             </p>
           </div>
           <button
-            onClick={() => setShowNewEntry(true)}
+            onClick={() => window.location.href = "/features/journal"}
             className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white text-base font-medium hover:from-purple-600 hover:to-pink-600 transition-all"
           >
             Start Writing

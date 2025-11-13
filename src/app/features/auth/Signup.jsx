@@ -141,10 +141,13 @@ export default function Signup() {
             >
               {loading ? "Creating account..." : "Create account"}
             </button>
+            <p className="text-sm text-center mt-2" style={{color: 'var(--feelheal-purple)'}}>
+              After registering, please confirm your signup by opening the verification email we send you.
+            </p>
           </form>
 
-          <div className="mt-3 text-center text-sm" style={{color: '#ffffff'}}>
-            Already have an account? <a href="/login" className="font-medium" style={{color: '#ffffff', textDecoration: 'underline'}}>Login</a>
+          <div className="mt-3 text-center text-sm" style={{color: 'var(--feelheal-purple)'}}>
+            Already have an account? <a href="/login" className="font-medium" style={{color: 'var(--feelheal-purple)', textDecoration: 'underline'}}>Login</a>
           </div>
         </div>
       </div>

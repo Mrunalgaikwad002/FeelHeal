@@ -6,6 +6,7 @@ import MoodTracker from "./MoodTracker";
 import JournalSection from "./JournalSection";
 import GoalsSection from "./GoalsSection";
 import QuickActions from "./QuickActions";
+import WellnessNotifications from "./WellnessNotifications";
 import { getCurrentUser } from "@/lib/api/auth";
 import { getCurrentProfile } from "@/lib/api/profiles";
 import { updateLastActiveDate } from "@/lib/api/profiles";
@@ -138,6 +139,9 @@ export default function Dashboard() {
     <div className="min-h-screen relative" style={{
       background: "linear-gradient(135deg, #f8f4ff 0%, #e8f4fd 100%)"
     }}>
+      {/* Wellness Notifications */}
+      <WellnessNotifications />
+      
       {/* Floating petals / hearts background (fixed in globals) */}
       <div className="floating-bg">
         {Array.from({ length: 32 }).map((_, i) => (
@@ -200,7 +204,7 @@ export default function Dashboard() {
               { icon: "🏠", label: "Dashboard" },
               { icon: "🌦️", label: "Mood Garden", href: "/features/mood" },
               { icon: "✍️", label: "Journal", target: "#card-journal" },
-              { icon: "🌌", label: "Goal Universe", href: "/features/goals" },
+              { icon: "🌌", label: "Goal Universe", target: "#card-goals" },
               { icon: "🧘‍♀️", label: "Meditation", href: "/features/meditation" },
               { icon: "💬", label: "MyBuddy", href: "/features/companion" },
               
@@ -228,7 +232,16 @@ export default function Dashboard() {
                     }
                   } else if (item.target) { 
                     const el = document.querySelector(item.target); 
-                    el && el.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+                    if (el) {
+                      // Scroll with offset for header
+                      const headerOffset = 80;
+                      const elementPosition = el.getBoundingClientRect().top;
+                      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                      window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                      });
+                    }
                     return; 
                   } else if (item.href) { 
                     window.location.href = item.href; 
