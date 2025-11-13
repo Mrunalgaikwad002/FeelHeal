@@ -48,12 +48,63 @@ export default function Signup() {
     }
 
     try {
-      // Sign up with Supabase
-      const { user, error: signUpError } = await signUp(
-        email.trim().toLowerCase(),
-        password,
-        name.trim()
-      );
+      // In development, try admin API first (bypasses rate limits)
+      // Falls back to regular signup if admin endpoint fails or backend is unavailable
+      let user, signUpError;
+      
+      if (process.env.NODE_ENV !== 'production') {
+        try {
+          const { signUpAdmin } = await import("@/lib/api/auth");
+          const adminResult = await signUpAdmin(
+            email.trim().toLowerCase(),
+            password,
+            name.trim()
+          );
+          
+          // If admin signup succeeded, use it
+          if (!adminResult.error && adminResult.user) {
+            user = adminResult.user;
+          } else if (adminResult.error?.message === 'BACKEND_UNAVAILABLE' || adminResult.error?.status === 'connection_error') {
+            // Backend not available - silently fall back to regular signup
+            console.log('Backend not available, using regular signup...');
+            const regularResult = await signUp(
+              email.trim().toLowerCase(),
+              password,
+              name.trim()
+            );
+            user = regularResult.user;
+            signUpError = regularResult.error;
+          } else {
+            // Admin signup failed for other reason - fall back to regular signup
+            const regularResult = await signUp(
+              email.trim().toLowerCase(),
+              password,
+              name.trim()
+            );
+            user = regularResult.user;
+            signUpError = regularResult.error;
+          }
+        } catch (adminErr) {
+          // If admin import or call fails, fall back to regular signup
+          console.log('Admin signup unavailable, using regular signup...');
+          const regularResult = await signUp(
+            email.trim().toLowerCase(),
+            password,
+            name.trim()
+          );
+          user = regularResult.user;
+          signUpError = regularResult.error;
+        }
+      } else {
+        // Production: use regular signup
+        const result = await signUp(
+          email.trim().toLowerCase(),
+          password,
+          name.trim()
+        );
+        user = result.user;
+        signUpError = result.error;
+      }
 
       if (signUpError) {
         if (signUpError.status === 429 || signUpError.message?.toLowerCase().includes("too many")) {

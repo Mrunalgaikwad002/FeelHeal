@@ -4,6 +4,56 @@
 import { supabase } from '../supabase'
 
 /**
+ * Sign up a new user using Admin API (development only, bypasses rate limits)
+ * @param {string} email - User email
+ * @param {string} password - User password
+ * @param {string} displayName - Display name
+ * @returns {Promise<{user: object, error: object}>}
+ */
+export async function signUpAdmin(email, password, displayName) {
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+  
+  try {
+    const response = await fetch(`${backendUrl}/api/auth/signup-admin`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password, displayName }),
+    });
+
+    // If backend is not available, return a specific error that triggers fallback
+    if (!response.ok && (response.status === 0 || response.status >= 500)) {
+      return { user: null, error: { message: 'BACKEND_UNAVAILABLE', status: 'connection_error' } };
+    }
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      return { user: null, error: result.error || { message: 'Signup failed' } };
+    }
+
+    // After admin creates user, sign them in with Supabase client
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (signInError) {
+      return { user: result.user, error: signInError };
+    }
+
+    return { user: data.user, error: null };
+  } catch (err) {
+    // Connection errors (backend not running) should trigger fallback
+    if (err.message?.includes('Failed to fetch') || err.message?.includes('ERR_CONNECTION_REFUSED')) {
+      return { user: null, error: { message: 'BACKEND_UNAVAILABLE', status: 'connection_error' } };
+    }
+    return { user: null, error: { message: err.message || 'Network error' } };
+  }
+}
+
+/**
  * Sign up a new user
  * @param {string} email - User email
  * @param {string} password - User password
